@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'pages/register_page.dart';
+import 'package:flutter_studypal/pages/onboarding_page.dart';
+import 'package:flutter_studypal/pages/register_page.dart';
+import 'package:flutter_studypal/pages/splash_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,9 +12,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: RegisterPage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const SplashPage(),
+        '/onboarding': (context) => const Onboarding(),
+        '/register': (context) => const RegisterPage(),
+        // '/login': (context) => const Login(),
+      },
     );
   }
 }

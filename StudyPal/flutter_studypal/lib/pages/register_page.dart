@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/components/horizontal_line.dart';
 import 'package:flutter_studypal/components/square_tile.dart';
+import 'package:flutter_studypal/utils/global_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+  const RegisterPage({super.key});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -11,8 +13,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   bool value = false;
-  bool isObscureText =
-      true; // State untuk mengatur password tersembunyi atau tidak
+  bool isObscureText = true;
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +28,22 @@ class _RegisterPageState extends State<RegisterPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   "Hey there,",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+                  style: GoogleFonts.poppins(
+                    textStyle: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   "Create an Account",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(
+                    textStyle: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 const SizedBox(height: 30),
                 Form(
@@ -165,9 +172,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     Checkbox(
                       value: value,
                       onChanged: (newValue) {
-                        setState(() {
-                          value = newValue!;
-                        });
+                        if (newValue != null) {
+                          setState(() {
+                            value = newValue;
+                          });
+                        }
                       },
                       activeColor: Colors.purple,
                     ),
@@ -180,14 +189,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   ],
                 ),
                 const SizedBox(height: 55),
-                // ignore: sized_box_for_whitespace
                 Container(
                   width: 15,
-                  height: 65,
+                  height: 60,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(45),
-                      gradient: const LinearGradient(
-                          colors: [Color(0xff92a3fd), Color(0xff9dceff)])),
+                    borderRadius: BorderRadius.circular(45),
+                    gradient: GlobalColors.buttonGradient,
+                  ),
                   child: TextButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
@@ -198,47 +206,60 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: const Text(
                       "Register",
                       style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 15,
-                ),
+                const SizedBox(height: 15),
                 const HorizontalOrLine(label: "OR"),
-                const SizedBox(
-                  height: 15,
-                ),
+                const SizedBox(height: 15),
                 const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SquareTile(imagePath: "lib/images/logo_google.png"),
+                      SquareTile(imagePath: "lib/assets/logo_google.png"),
                       SizedBox(
                         width: 25,
                       ),
-                      SquareTile(imagePath: "lib/images/logo_facebook.png")
+                      SquareTile(imagePath: "lib/assets/logo_facebook.png"),
                     ]),
                 const SizedBox(
                   height: 25,
                 ),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "Already have an account?",
-                      style: TextStyle(fontSize: 16),
+                      style: GoogleFonts.poppins(
+                        textStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
-                    SizedBox(
-                      width: 4,
-                    ),
-                    Text(
-                      "Login",
-                      style: TextStyle(color: Color(0xffc58bf2), fontSize: 16),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () {
+                        // Handle login button press
+                        Navigator.pushNamed(context, '/login');
+                      },
+                      child: Text(
+                        "Login",
+                        style: GoogleFonts.poppins(
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.purple,
+                          ),
+                        ),
+                      ),
                     )
                   ],
-                )
+                ),
               ],
             ),
           ),
