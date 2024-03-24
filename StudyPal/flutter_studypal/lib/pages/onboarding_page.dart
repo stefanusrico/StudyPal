@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_studypal/components/feature_row.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
 import 'package:flutter_studypal/utils/global_text.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class Onboarding extends StatelessWidget {
   const Onboarding({super.key});

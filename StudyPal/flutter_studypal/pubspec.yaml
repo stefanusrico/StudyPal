@@ -71,6 +71,10 @@ flutter:
     - lib/assets/people.svg
     - lib/assets/controller.svg
     - lib/assets/achievement.svg
+    - lib/assets/stain.svg
+    - lib/assets/book.svg
+    - lib/assets/reading.svg
+    - lib/assets/meditation.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
