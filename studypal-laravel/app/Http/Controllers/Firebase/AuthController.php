@@ -67,6 +67,12 @@ class AuthController extends Controller
       $signInResult = $this->auth->signInWithEmailAndPassword($email, $password);
       $idToken = $signInResult->idToken();
 
+      // Set masa kadaluwarsa jadi satu jam
+      $customClaims = [
+        'expires_in' => time() + 3600,
+      ];
+      $this->auth->setCustomUserClaims($signInResult->firebaseUserId(), $customClaims);
+
       return response()->json(['token' => $idToken], 200);
     } catch (\Exception $e) {
       return response()->json(['message' => $e->getMessage()], 401);
@@ -76,44 +82,42 @@ class AuthController extends Controller
   public function logout(Request $request)
   {
     $response = (object) [];
-    $checkIfRevoked = false;
     $token = $request->bearerToken();
     $response->token = $token;
-    try {
 
+    try {
       $verifiedIdToken = $this->auth->verifyIdToken($token);
       $uid = $verifiedIdToken->claims()->get('sub');
-      $response->payload_uid = $uid;
-      $revokeToken = $this->auth->revokeRefreshTokens($uid);
-      return response()->json($response, 200);
+
+      $this->auth->revokeRefreshTokens($uid);
 
       return response()->json(['message' => 'Logout berhasil'], 200);
-    } catch (RevokedIdToken $e) {
+    } catch (FirebaseException $e) {
       return response()->json(['error' => $e->getMessage()], 500);
     }
   }
 
   public function checkToken(Request $request)
   {
-    $response = (object) [];
-
     $token = $request->bearerToken();
-    $response->token = $token;
 
     try {
-      // $auth = app('firebase.auth');
       $verifiedIdToken = $this->auth->verifyIdToken($token);
 
+      $expirationTime = $verifiedIdToken->claims()->get('expires_in');
+      if (time() >= $expirationTime) {
+        return response()->json(['error' => 'The token is invalid'], 401);
+      }
+
       $email = $verifiedIdToken->claims()->get('email');
-      $response->payload_email = $email;
-
       $uid = $verifiedIdToken->claims()->get('sub');
-      $response->payload_uid = $uid;
-
       $user = $this->auth->getUser($uid);
-      $response->authenticated_user = $user;
 
-      return response()->json($response, 200);
+      return response()->json([
+        'email' => $email,
+        'uid' => $uid,
+        'user' => $user
+      ], 200);
     } catch (FailedToVerifyToken $e) {
       return response()->json(['error' => 'The token is invalid'], 401);
     } catch (FirebaseException $e) {
