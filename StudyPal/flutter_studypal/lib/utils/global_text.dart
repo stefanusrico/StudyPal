@@ -6,6 +6,9 @@ class GlobalText {
   static TextStyle blackPrimaryPoppinsTextStyle =
       GoogleFonts.poppins(color: GlobalColors.blackColor);
 
+  static TextStyle grayPrimaryPoppinsTextStyle =
+      GoogleFonts.poppins(color: GlobalColors.textRegiterPage2);
+
   static TextStyle blackPrimaryArimoTextStyle =
       GoogleFonts.arimo(color: GlobalColors.blackColor);
 }

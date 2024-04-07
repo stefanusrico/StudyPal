@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/pages/auth/register_page2.dart';
 import 'package:flutter_studypal/components/horizontal_line.dart';
 import 'package:flutter_studypal/components/square_tile.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
@@ -12,8 +13,13 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  bool value = false;
+  bool acceptTerms = false;
   bool isObscureText = true;
+
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     children: [
                       TextFormField(
+                        controller: firstNameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your first name";
@@ -75,6 +82,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        controller: lastNameController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your last name";
@@ -100,6 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        controller: emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your email";
@@ -125,6 +134,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        controller: passwordController,
                         obscureText: isObscureText,
                         obscuringCharacter: "*",
                         validator: (value) {
@@ -170,13 +180,11 @@ class _RegisterPageState extends State<RegisterPage> {
                 Row(
                   children: [
                     Checkbox(
-                      value: value,
+                      value: acceptTerms,
                       onChanged: (newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            value = newValue;
-                          });
-                        }
+                        setState(() {
+                          acceptTerms = newValue ?? false;
+                        });
                       },
                       activeColor: Colors.purple,
                     ),
@@ -197,7 +205,21 @@ class _RegisterPageState extends State<RegisterPage> {
                     gradient: GlobalColors.buttonGradient,
                   ),
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      if (_isDataComplete()) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RegisterPage2(
+                              firstName: firstNameController.text,
+                              lastName: lastNameController.text,
+                              email: emailController.text,
+                              password: passwordController.text,
+                            ),
+                          ),
+                        );
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
@@ -244,7 +266,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () {
-                        // Handle login button press
                         Navigator.pushNamed(context, '/login');
                       },
                       child: Text(
@@ -266,5 +287,28 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
+  }
+
+  bool _isDataComplete() {
+    if (firstNameController.text.isEmpty ||
+        lastNameController.text.isEmpty ||
+        emailController.text.isEmpty ||
+        passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all fields.'),
+        ),
+      );
+      return false;
+    } else if (!acceptTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please accept the terms.'),
+        ),
+      );
+      return false;
+    } else {
+      return true;
+    }
   }
 }

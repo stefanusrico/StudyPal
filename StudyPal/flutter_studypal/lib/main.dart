@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/pages/onboarding_page.dart';
-import 'package:flutter_studypal/pages/register_page.dart';
+import 'package:flutter_studypal/pages/auth/register_page.dart';
+import 'package:flutter_studypal/pages/auth/register_page2.dart';
 import 'package:flutter_studypal/pages/splash_page.dart';
 
 void main() {
