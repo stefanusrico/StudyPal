@@ -9,6 +9,7 @@ class GlobalColors {
 
   static HexColor textLogoColor = HexColor("#CC8FED");
   static HexColor textLogin = HexColor("#C58BF2");
+  static HexColor textRegiterPage2 = HexColor("#7B6F72");
   // static HexColor iconColor = HexColor("#86ABFF");
   static Color iconColor = const Color(0xff86abff).withAlpha(255);
 }
