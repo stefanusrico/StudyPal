@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_studypal/components/horizontal_line.dart';
 import 'package:flutter_studypal/components/square_tile.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
+import 'package:flutter_studypal/pages/main_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -197,7 +198,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     gradient: GlobalColors.buttonGradient,
                   ),
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MainScreen()),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
