@@ -9,7 +9,7 @@ import 'group_page.dart';
 import 'profile_page.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -72,13 +72,14 @@ class _MainScreenState extends State<MainScreen> {
               .toList(),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: FloatingActionButton( // Floating action button
+        floatingActionButton: FloatingActionButton(
+          // Floating action button
           onPressed: () => debugPrint("Add Button pressed"),
           shape: const CircleBorder(), // Set shape to circle
           child: const Icon(Icons.add),
         ),
         bottomNavigationBar: AnimatedBottomNavigationBar(
-          icons: [
+          icons: const [
             Icons.home_outlined,
             Icons.insert_chart_outlined_rounded,
             Icons.group_outlined,
@@ -99,7 +100,8 @@ class _MainScreenState extends State<MainScreen> {
               });
             }
           },
-          activeColor: const Color.fromARGB(255,150,180,254),// Set color for selected icon
+          activeColor: const Color.fromARGB(
+              255, 150, 180, 254), // Set color for selected icon
           inactiveColor: Colors.grey, // Set color for inactive icons
         ),
       ),
