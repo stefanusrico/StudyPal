@@ -165,7 +165,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             Text(
                               formattedDate,
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             ),
                             Container(
                               width: 45,

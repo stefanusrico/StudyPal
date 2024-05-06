@@ -10,6 +10,7 @@ import 'profile_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -161,6 +162,7 @@ class _MainScreenState extends State<MainScreen> {
           children: _getSpeedDialChildren(),
         ),
         bottomNavigationBar: AnimatedBottomNavigationBar(
+          icons: const [
           icons: const [
             Icons.home_outlined,
             Icons.insert_chart_outlined_rounded,
