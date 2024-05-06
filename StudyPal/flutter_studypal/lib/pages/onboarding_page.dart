@@ -77,7 +77,7 @@ class Onboarding extends StatelessWidget {
                   ),
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/register');
+                      Navigator.pushReplacementNamed(context, '/login');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,

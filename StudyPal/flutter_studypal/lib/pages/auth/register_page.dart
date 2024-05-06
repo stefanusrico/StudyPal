@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/pages/auth/login_page.dart';
 import 'package:flutter_studypal/pages/auth/register_page2.dart';
 import 'package:flutter_studypal/components/horizontal_line.dart';
 import 'package:flutter_studypal/components/square_tile.dart';
@@ -57,6 +58,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     children: [
                       TextFormField(
                         controller: firstNameController,
+                        onChanged: (value) {
+                          print('First Name: $value');
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your first name";
@@ -83,6 +87,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: lastNameController,
+                        onChanged: (value) {
+                          print('Last Name: $value');
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your last name";
@@ -109,6 +116,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: emailController,
+                        onChanged: (value) {
+                          print('Email: $value');
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your email";
@@ -137,6 +147,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         controller: passwordController,
                         obscureText: isObscureText,
                         obscuringCharacter: "*",
+                        onChanged: (value) {
+                          print('Password: $value');
+                        },
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return "Please enter your password";
@@ -266,7 +279,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushNamed(context, '/login');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginPage(),
+                          ),
+                        );
                       },
                       child: Text(
                         "Login",

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/pages/auth/login_page.dart';
+import 'package:flutter_studypal/pages/main_screen.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_studypal/pages/main_screen.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
 import 'package:flutter_studypal/utils/global_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
 class RegisterPage2 extends StatefulWidget {
   final String firstName;
@@ -211,28 +214,42 @@ class _RegisterPageState extends State<RegisterPage2> {
 
   Future<void> register(String firstName, String lastName, String email,
       String password, String gender, DateTime birthDate) async {
-    Uri apiUrl = Uri.parse('http://10.0.2.2:8000/api/register');
+    Uri apiUrl = Uri.parse('http://10.0.2.2:4000/register');
 
-    Map<String, dynamic> requestData = {
+    // Konversi requestData menjadi JSON
+    String jsonData = json.encode({
       'first_name': firstName,
       'last_name': lastName,
       'email': email,
       'password': password,
       'gender': gender,
       'birth_date': birthDate.toString(),
-    };
+    });
+
 
     try {
-      final response = await http.post(apiUrl, body: requestData);
+      final response = await http.post(
+        apiUrl,
+        body: jsonData,
+        headers: {
+          "Content-Type": "application/json",
+          "accept": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        },
+      );
 
       if (response.statusCode == 200) {
         debugPrint('Data sent successfully');
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } else {
         debugPrint('Failed to send data: ${response.statusCode}');
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => const LoginPage()),
+        // );
       }
     } catch (error) {
       debugPrint('Error: $error');
