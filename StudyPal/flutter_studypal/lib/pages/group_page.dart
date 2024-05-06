@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'settings_page.dart';
 
 class GroupPage extends StatefulWidget {
-  const GroupPage({Key? key}) : super(key: key);
+  const GroupPage({super.key});
 
   @override
   State<GroupPage> createState() => _GroupPageState();
 }
+
 class _GroupPageState extends State<GroupPage> {
   int selectedTile = 0;
   int currentPage = 1;
   int pageSize = 9;
 
   // Simulasikan daftar user dan status online/offline mereka
-  final List<bool> onlineStatus = List.generate(20, (index) => index * 2 == 0); // Genap = online, ganjil = offline
+  final List<bool> onlineStatus = List.generate(
+      20, (index) => index * 2 == 0); // Genap = online, ganjil = offline
   final List<String> data = List.generate(20, (index) => 'User $index');
 
   @override
@@ -26,7 +28,7 @@ class _GroupPageState extends State<GroupPage> {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -42,7 +44,7 @@ class _GroupPageState extends State<GroupPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(17, 25, 17, 12),
+                  padding: const EdgeInsets.fromLTRB(17, 25, 17, 12),
                   child: Column(
                     children: [
                       Row(
@@ -59,34 +61,41 @@ class _GroupPageState extends State<GroupPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              color: Colors.white, // Background color of the dropdown
-                              icon: Icon(
+                              color: Colors
+                                  .white, // Background color of the dropdown
+                              icon: const Icon(
                                 Icons.menu,
                                 color: Colors.black,
                               ),
-                              itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-                                PopupMenuItem(
+                              itemBuilder: (BuildContext context) =>
+                                  <PopupMenuEntry>[
+                                const PopupMenuItem(
                                   value: 'menu1',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.person), // Tambahkan ikon di sebelah kiri teks
-                                      SizedBox(width: 10), // Beri jarak antara ikon dan teks
+                                      Icon(Icons
+                                          .person), // Tambahkan ikon di sebelah kiri teks
+                                      SizedBox(
+                                          width:
+                                              10), // Beri jarak antara ikon dan teks
                                       Text('John Doe'),
                                     ],
                                   ),
                                 ),
-                                PopupMenuItem(
+                                const PopupMenuItem(
                                   value: 'menu2',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.logout_rounded), // Tambahkan ikon
+                                      Icon(Icons
+                                          .logout_rounded), // Tambahkan ikon
                                       SizedBox(width: 10),
                                       Text('Sign Out'),
                                     ],
                                   ),
                                 ),
-                                PopupMenuDivider(height: 1), // Garis pembatas
-                                PopupMenuItem(
+                                const PopupMenuDivider(
+                                    height: 1), // Garis pembatas
+                                const PopupMenuItem(
                                   value: 'menu3',
                                   child: Row(
                                     children: [
@@ -96,7 +105,7 @@ class _GroupPageState extends State<GroupPage> {
                                     ],
                                   ),
                                 ),
-                                PopupMenuItem(
+                                const PopupMenuItem(
                                   value: 'menu4',
                                   child: Row(
                                     children: [
@@ -117,12 +126,13 @@ class _GroupPageState extends State<GroupPage> {
                                     // Tambahkan logika menu 2
                                     break;
                                   case 'menu3':
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => SettingsPage(), // Arahkan ke SettingsPage
-                                          ),
-                                        );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SettingsPage(), // Arahkan ke SettingsPage
+                                      ),
+                                    );
                                     break;
                                   case 'menu4':
                                     // Tambahkan logika menu 4
@@ -132,78 +142,85 @@ class _GroupPageState extends State<GroupPage> {
                               },
                             ),
                           ),
-                          Text(
+                          const Text(
                             "Group",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        Container(
-                          width: 45,
-                          height: 45, 
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: PopupMenuButton(
-                            shape: RoundedRectangleBorder(
+                          Container(
+                            width: 45,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            color: Colors.white, // Background color of the dropdown
-                            icon: Icon(
-                              Icons.notifications_outlined,
-                              color: Colors.black,
-                            ),
-                            itemBuilder: (BuildContext context) => <PopupMenuEntry>[
-                              PopupMenuItem(
-                                child: Text('Notifications'),
-                                value: 'notification1',
+                            child: PopupMenuButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              PopupMenuItem(
-                                child: Text('Challenges'),
-                                value: 'notification2',
+                              color: Colors
+                                  .white, // Background color of the dropdown
+                              icon: const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.black,
                               ),
-                              // Add more PopupMenuItems as needed
-                            ],
-                            onSelected: (value) {
-                              // Handle notification selection here
-                              switch(value) {
-                                case 'notification1':
-                                  // Navigator.push(
+                              itemBuilder: (BuildContext context) =>
+                                  <PopupMenuEntry>[
+                                const PopupMenuItem(
+                                  value: 'notification1',
+                                  child: Text('Notifications'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'notification2',
+                                  child: Text('Challenges'),
+                                ),
+                                // Add more PopupMenuItems as needed
+                              ],
+                              onSelected: (value) {
+                                // Handle notification selection here
+                                switch (value) {
+                                  case 'notification1':
+                                    // Navigator.push(
                                     // context,
                                     // MaterialPageRoute(builder: (context) => NotificationPage1()),
-                                  // );
-                                  break;
-                                case 'notification2':
-                                  // Navigator.push(
+                                    // );
+                                    break;
+                                  case 'notification2':
+                                    // Navigator.push(
                                     // context,
                                     // MaterialPageRoute(builder: (context) => NotificationPage2()),
-                                  // );
-                                  break;
-                                // Add cases for more notifications as needed
-                              }
-                            },
+                                    // );
+                                    break;
+                                  // Add cases for more notifications as needed
+                                }
+                              },
+                            ),
                           ),
-                        ),
                         ],
                       ),
                     ],
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0), // Kurangi jarak untuk lebih dekat dengan grid
+                  padding: const EdgeInsets.fromLTRB(20, 0, 0,
+                      0), // Kurangi jarak untuk lebih dekat dengan grid
                   child: RichText(
                     text: TextSpan(
                       children: [
-                        TextSpan(
+                        const TextSpan(
                           text: 'Studying ',
-                          style: TextStyle(color: Colors.white), // Warna untuk teks "Studying"
+                          style: TextStyle(
+                              color:
+                                  Colors.white), // Warna untuk teks "Studying"
                         ),
                         TextSpan(
-                          text: '$onlineCount member${onlineCount > 1 ? "s" : ""}', // Tambahkan "s" jika lebih dari satu
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 94, 108, 237) , // Warna untuk teks jumlah member
+                          text:
+                              '$onlineCount member${onlineCount > 1 ? "s" : ""}', // Tambahkan "s" jika lebih dari satu
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 94, 108,
+                                237), // Warna untuk teks jumlah member
                           ),
                         ),
                       ],
@@ -212,22 +229,26 @@ class _GroupPageState extends State<GroupPage> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 0), // Padding untuk GridView
+                    padding: const EdgeInsets.fromLTRB(
+                        16, 0, 16, 0), // Padding untuk GridView
                     child: GridView.builder(
                       itemCount: pageSize,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
                         childAspectRatio: 0.8,
                       ),
                       itemBuilder: (context, index) {
-                        final int itemIndex = (currentPage - 1) * pageSize + index;
+                        final int itemIndex =
+                            (currentPage - 1) * pageSize + index;
                         if (itemIndex >= totalItems) {
-                          return SizedBox.shrink();
+                          return const SizedBox.shrink();
                         }
 
-                        bool isOnline = onlineStatus[itemIndex]; // Status online pengguna
+                        bool isOnline =
+                            onlineStatus[itemIndex]; // Status online pengguna
 
                         return Card(
                           elevation: 2,
@@ -235,14 +256,14 @@ class _GroupPageState extends State<GroupPage> {
                             borderRadius: BorderRadius.circular(18),
                             side: BorderSide(
                               color: isOnline
-                                  ? Color.fromARGB(255, 136, 146, 237)
-                                  : Colors.transparent, 
+                                  ? const Color.fromARGB(255, 136, 146, 237)
+                                  : Colors.transparent,
                               width: isOnline ? 4 : 0,
                             ),
                           ),
                           color: isOnline
-                              ? Color.fromARGB(255, 157, 158, 251)
-                              : Colors.white, 
+                              ? const Color.fromARGB(255, 157, 158, 251)
+                              : Colors.white,
                           child: InkWell(
                             onTap: () {
                               // Aksi saat kartu ditekan
@@ -256,9 +277,10 @@ class _GroupPageState extends State<GroupPage> {
                                   size: 50,
                                   color: isOnline
                                       ? Colors.white
-                                      : Color.fromARGB(255, 157, 158, 251),
+                                      : const Color.fromARGB(
+                                          255, 157, 158, 251),
                                 ),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 Text(
                                   data[itemIndex],
                                   style: TextStyle(
@@ -266,15 +288,19 @@ class _GroupPageState extends State<GroupPage> {
                                     fontWeight: FontWeight.bold,
                                     color: isOnline
                                         ? Colors.white
-                                        : Color.fromARGB(255, 157, 158, 251),
+                                        : const Color.fromARGB(
+                                            255, 157, 158, 251),
                                   ),
                                 ),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 Text(
                                   "00:00:00",
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isOnline ? Colors.white : Color.fromARGB(255, 157, 158, 251),
+                                    color: isOnline
+                                        ? Colors.white
+                                        : const Color.fromARGB(
+                                            255, 157, 158, 251),
                                   ),
                                 ),
                               ],
@@ -286,13 +312,15 @@ class _GroupPageState extends State<GroupPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 20, 18), // Ubah padding agar lebih rapi
+                  padding: const EdgeInsets.fromLTRB(
+                      0, 0, 20, 18), // Ubah padding agar lebih rapi
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end, // Ubah posisinya ke kanan
+                    mainAxisAlignment:
+                        MainAxisAlignment.end, // Ubah posisinya ke kanan
                     children: [
                       Text(
                         'Showing ${currentPage == totalPages ? totalItems - pageSize * (totalPages - 1) : pageSize} of $totalItems members',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                         ),
@@ -306,7 +334,8 @@ class _GroupPageState extends State<GroupPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.chevron_left_rounded, color: Colors.white),
+                        icon: const Icon(Icons.chevron_left_rounded,
+                            color: Colors.white),
                         onPressed: currentPage > 1
                             ? () {
                                 setState(() {
@@ -319,7 +348,8 @@ class _GroupPageState extends State<GroupPage> {
                       // Tombol angka-angka halaman
                       for (int i = 1; i <= totalPages; i++)
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5), // Beri jarak antar tombol
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5), // Beri jarak antar tombol
                           child: ElevatedButton(
                             onPressed: () {
                               setState(() {
@@ -328,38 +358,46 @@ class _GroupPageState extends State<GroupPage> {
                             },
                             style: ButtonStyle(
                               minimumSize: MaterialStateProperty.all<Size>(
-                                Size(40, 40), // Ukuran minimum agar tombol simetris
+                                const Size(40,
+                                    40), // Ukuran minimum agar tombol simetris
                               ),
                               backgroundColor: MaterialStateProperty.all<Color>(
                                 currentPage == i
-                                    ? Color.fromARGB(255, 157, 158, 251) // Warna tombol saat halaman aktif
-                                    : Colors.white, // Warna tombol saat halaman tidak aktif
+                                    ? const Color.fromARGB(255, 157, 158,
+                                        251) // Warna tombol saat halaman aktif
+                                    : Colors
+                                        .white, // Warna tombol saat halaman tidak aktif
                               ),
-                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              shape: MaterialStateProperty.all<
+                                  RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   side: BorderSide(
-                                    color: currentPage == i 
-                                        ? Color.fromARGB(255, 136, 146, 237) // Border jika halaman aktif
+                                    color: currentPage == i
+                                        ? const Color.fromARGB(255, 136, 146,
+                                            237) // Border jika halaman aktif
                                         : Colors.transparent,
-                                    width: currentPage == i ? 4 : 0, // Ketebalan border
+                                    width: currentPage == i
+                                        ? 4
+                                        : 0, // Ketebalan border
                                   ),
                                 ),
                               ),
                             ),
                             child: Text(
-                              i.toString(), 
+                              i.toString(),
                               style: TextStyle(
-                                color: currentPage == i 
-                                    ? Colors.white 
-                                    : Color.fromARGB(255, 157, 158, 251),
+                                color: currentPage == i
+                                    ? Colors.white
+                                    : const Color.fromARGB(255, 157, 158, 251),
                               ),
                             ),
                           ),
                         ),
 
                       IconButton(
-                        icon: Icon(Icons.chevron_right_rounded, color: Colors.white),
+                        icon: const Icon(Icons.chevron_right_rounded,
+                            color: Colors.white),
                         onPressed: currentPage < totalPages
                             ? () {
                                 setState(() {
@@ -399,9 +437,9 @@ class _GroupPageState extends State<GroupPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(10, 4, 10, 30),
+                  padding: const EdgeInsets.fromLTRB(10, 4, 10, 30),
                   child: Container(
                     width: 55,
                     height: 6,
@@ -410,13 +448,13 @@ class _GroupPageState extends State<GroupPage> {
                 ),
                 Container(
                   width: MediaQuery.of(context).size.width * 0.85,
-                  margin: EdgeInsets.symmetric(vertical: 10),
+                  margin: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: const Color.fromARGB(255, 234, 240, 255),
                   ),
                   child: ListTile(
-                    title: Text(
+                    title: const Text(
                       'Today target',
                       style: TextStyle(color: Colors.black),
                     ),
@@ -425,10 +463,12 @@ class _GroupPageState extends State<GroupPage> {
                         // Add logic here
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(const Color.fromARGB(255, 150, 180, 254)), 
-                        minimumSize: MaterialStateProperty.all<Size>(Size(10, 30)), 
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            const Color.fromARGB(255, 150, 180, 254)),
+                        minimumSize:
+                            MaterialStateProperty.all<Size>(const Size(10, 30)),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Check',
                         style: TextStyle(
                           color: Colors.white,
@@ -437,18 +477,17 @@ class _GroupPageState extends State<GroupPage> {
                     ),
                   ),
                 ),
-                
                 Container(
-                  padding: EdgeInsets.fromLTRB(25, 10, 25, 0),
+                  padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
                   child: Card(
-                    color: Color.fromARGB(255, 214, 225, 255),
+                    color: const Color.fromARGB(255, 214, 225, 255),
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
                       children: [
-                        Padding(
+                        const Padding(
                           padding: EdgeInsets.fromLTRB(0, 24, 0, 6),
                           child: Text(
                             "Group Stats",
@@ -463,22 +502,28 @@ class _GroupPageState extends State<GroupPage> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Atur jarak antar-kartu
+                            mainAxisAlignment: MainAxisAlignment
+                                .spaceBetween, // Atur jarak antar-kartu
                             children: [
-                              buildCustomCard("02:10:47", "Time Total"), // Kartu pertama
-                              buildCustomCard("00:20:43", "Max Focus"), // Kartu kedua
+                              buildCustomCard(
+                                  "02:10:47", "Time Total"), // Kartu pertama
+                              buildCustomCard(
+                                  "00:20:43", "Max Focus"), // Kartu kedua
                             ],
                           ),
                         ),
-                        SizedBox(height: 2), // Jarak antar-baris
+                        const SizedBox(height: 2), // Jarak antar-baris
                         // Row kedua
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Atur jarak antar-kartu
+                            mainAxisAlignment: MainAxisAlignment
+                                .spaceBetween, // Atur jarak antar-kartu
                             children: [
-                              buildCustomCard("12h 20m", "Start Time"), // Kartu ketiga
-                              buildCustomCard("14h 30m", "Finish Time"), // Kartu keempat
+                              buildCustomCard(
+                                  "12h 20m", "Start Time"), // Kartu ketiga
+                              buildCustomCard(
+                                  "14h 30m", "Finish Time"), // Kartu keempat
                             ],
                           ),
                         ),
@@ -486,7 +531,7 @@ class _GroupPageState extends State<GroupPage> {
                     ),
                   ),
                 ),
-                Padding(
+                const Padding(
                   padding: EdgeInsets.fromLTRB(32, 15, 15, 15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -513,7 +558,7 @@ class _GroupPageState extends State<GroupPage> {
   Widget buildCustomCard(String title, String subtitle) {
     return Container(
       // margin: EdgeInsets.fromLTRB(10, 5, 10, 10),
-      padding: EdgeInsets.symmetric(horizontal: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       width: 140, // Ukuran lebar tetap untuk setiap kartu
       height: 80, // Ukuran tinggi tetap untuk setiap kartu
       child: Card(
@@ -522,25 +567,22 @@ class _GroupPageState extends State<GroupPage> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: EdgeInsets.all(6),
+          padding: const EdgeInsets.all(6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center, // Konten di tengah
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 title, // Teks besar
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
-                  color: Color.fromARGB(255,136,146,237),
+                  color: Color.fromARGB(255, 136, 146, 237),
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 subtitle, // Teks kecil
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey
-                ),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
@@ -548,5 +590,4 @@ class _GroupPageState extends State<GroupPage> {
       ),
     );
   }
-
 }

@@ -5,7 +5,7 @@ import 'settings_page.dart';
 import 'package:intl/intl.dart';
 
 class InsightPage extends StatefulWidget {
-  const InsightPage({Key? key}) : super(key: key);
+  const InsightPage({super.key});
 
   @override
   State<InsightPage> createState() => _InsightPageState();
@@ -19,7 +19,7 @@ class _InsightPageState extends State<InsightPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -35,7 +35,7 @@ class _InsightPageState extends State<InsightPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(17, 25, 17, 25),
+                  padding: const EdgeInsets.fromLTRB(17, 25, 17, 25),
                   child: Column(
                     children: [
                       Row(
@@ -54,13 +54,13 @@ class _InsightPageState extends State<InsightPage> {
                               ),
                               color: Colors
                                   .white, // Background color of the dropdown
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.menu,
                                 color: Colors.black,
                               ),
                               itemBuilder: (BuildContext context) =>
                                   <PopupMenuEntry>[
-                                PopupMenuItem(
+                                const PopupMenuItem(
                                   value: 'menu1',
                                   child: Row(
                                     children: [
@@ -73,7 +73,7 @@ class _InsightPageState extends State<InsightPage> {
                                     ],
                                   ),
                                 ),
-                                PopupMenuItem(
+                                const PopupMenuItem(
                                   value: 'menu2',
                                   child: Row(
                                     children: [
@@ -84,8 +84,9 @@ class _InsightPageState extends State<InsightPage> {
                                     ],
                                   ),
                                 ),
-                                PopupMenuDivider(height: 1), // Garis pembatas
-                                PopupMenuItem(
+                                const PopupMenuDivider(
+                                    height: 1), // Garis pembatas
+                                const PopupMenuItem(
                                   value: 'menu3',
                                   child: Row(
                                     children: [
@@ -95,7 +96,7 @@ class _InsightPageState extends State<InsightPage> {
                                     ],
                                   ),
                                 ),
-                                PopupMenuItem(
+                                const PopupMenuItem(
                                   value: 'menu4',
                                   child: Row(
                                     children: [
@@ -120,7 +121,7 @@ class _InsightPageState extends State<InsightPage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            SettingsPage(), // Arahkan ke SettingsPage
+                                            const SettingsPage(), // Arahkan ke SettingsPage
                                       ),
                                     );
                                     break;
@@ -132,17 +133,17 @@ class _InsightPageState extends State<InsightPage> {
                               },
                             ),
                           ),
-                          Spacer(),
-                          Spacer(),
-                          Spacer(),
-                          Text(
+                          const Spacer(),
+                          const Spacer(),
+                          const Spacer(),
+                          const Text(
                             'Activity Tracker',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Container(
                             width: 95,
                             height: 45,
@@ -161,9 +162,9 @@ class _InsightPageState extends State<InsightPage> {
                                 children: [
                                   Text(
                                     _selectedOption, // Tampilkan opsi yang dipilih
-                                    style: TextStyle(color: Colors.black),
+                                    style: const TextStyle(color: Colors.black),
                                   ),
-                                  Icon(Icons.expand_more_rounded,
+                                  const Icon(Icons.expand_more_rounded,
                                       color:
                                           Colors.black), // Ikon panah ke bawah
                                 ],
@@ -176,15 +177,15 @@ class _InsightPageState extends State<InsightPage> {
                               },
                               itemBuilder: (BuildContext context) =>
                                   <PopupMenuEntry<String>>[
-                                PopupMenuItem<String>(
+                                const PopupMenuItem<String>(
                                   value: 'Daily', // Nilai untuk opsi "daily"
                                   child: Text('Daily'),
                                 ),
-                                PopupMenuItem<String>(
+                                const PopupMenuItem<String>(
                                   value: 'Weekly', // Nilai untuk opsi "weekly"
                                   child: Text('Weekly'),
                                 ),
-                                PopupMenuItem<String>(
+                                const PopupMenuItem<String>(
                                   value:
                                       'Monthly', // Nilai untuk opsi "monthly"
                                   child: Text('Monthly'),
@@ -197,7 +198,7 @@ class _InsightPageState extends State<InsightPage> {
                     ],
                   ),
                 ),
-                LineChartSample1(),
+                const LineChartSample1(),
               ],
             ),
             bottomDetailsSheet(),
@@ -213,11 +214,11 @@ class _InsightPageState extends State<InsightPage> {
 
     return DraggableScrollableSheet(
       initialChildSize: .63,
-      minChildSize: .08,
-      maxChildSize: .63,
+      minChildSize: .63,
+      maxChildSize: 1,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(50),
@@ -230,9 +231,10 @@ class _InsightPageState extends State<InsightPage> {
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 10), // Beri sedikit jarak di bagian atas
+                  const SizedBox(
+                      height: 10), // Beri sedikit jarak di bagian atas
                   Padding(
-                    padding: EdgeInsets.fromLTRB(10, 4, 10,
+                    padding: const EdgeInsets.fromLTRB(10, 4, 10,
                         30), // Atur padding dengan nilai berbeda untuk setiap sisi
                     child: Container(
                       width: 55, // Atur lebar kotak kecil
@@ -241,9 +243,9 @@ class _InsightPageState extends State<InsightPage> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.fromLTRB(25, 10, 25, 0),
+                    padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
                     child: Card(
-                      color: Color.fromARGB(255, 214, 225, 255),
+                      color: const Color.fromARGB(255, 214, 225, 255),
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -251,10 +253,10 @@ class _InsightPageState extends State<InsightPage> {
                       child: Column(
                         children: [
                           Padding(
-                            padding: EdgeInsets.fromLTRB(0, 24, 0, 10),
+                            padding: const EdgeInsets.fromLTRB(0, 24, 0, 10),
                             child: Text(
                               formattedDate,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.white,
                               ),
@@ -274,7 +276,7 @@ class _InsightPageState extends State<InsightPage> {
                               ],
                             ),
                           ),
-                          SizedBox(height: 2), // Jarak antar-baris
+                          const SizedBox(height: 2), // Jarak antar-baris
                           // Row kedua
                           Padding(
                             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -294,14 +296,14 @@ class _InsightPageState extends State<InsightPage> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.fromLTRB(25, 10, 25, 0),
+                    padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
                     child: Card(
-                      color: Color.fromARGB(255, 236, 240, 249),
+                      color: const Color.fromARGB(255, 236, 240, 249),
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Column(
+                      child: const Column(
                         children: [
                           PieChartSample1(),
                         ],
@@ -318,7 +320,7 @@ class _InsightPageState extends State<InsightPage> {
   Widget buildCustomCard(String title, String subtitle) {
     return Container(
       // margin: EdgeInsets.fromLTRB(10, 5, 10, 10),
-      padding: EdgeInsets.symmetric(horizontal: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       width: 140, // Ukuran lebar tetap untuk setiap kartu
       height: 80, // Ukuran tinggi tetap untuk setiap kartu
       child: Card(
@@ -327,14 +329,14 @@ class _InsightPageState extends State<InsightPage> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: EdgeInsets.all(6),
+          padding: const EdgeInsets.all(6),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center, // Konten di tengah
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 title, // Teks besar
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   color: Color.fromARGB(255, 136, 146, 237),
                   fontWeight: FontWeight.bold,
@@ -342,7 +344,7 @@ class _InsightPageState extends State<InsightPage> {
               ),
               Text(
                 subtitle, // Teks kecil
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),

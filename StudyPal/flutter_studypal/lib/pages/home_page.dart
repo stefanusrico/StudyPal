@@ -29,7 +29,7 @@ class HomePage extends StatefulWidget {
   final StopWatchTimer
       stopWatchTimer; // Tambahkan parameter untuk referensi stopWatchTimer
 
-  const HomePage({Key? key, required this.stopWatchTimer}) : super(key: key);
+  const HomePage({super.key, required this.stopWatchTimer});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: EdgeInsets.fromLTRB(17, 25, 17, 25),
+                    padding: const EdgeInsets.fromLTRB(17, 25, 17, 25),
                     child: Column(
                       children: [
                         Row(
@@ -85,13 +85,13 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 color: Colors
                                     .white, // Background color of the dropdown
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.menu,
                                   color: Colors.black,
                                 ),
                                 itemBuilder: (BuildContext context) =>
                                     <PopupMenuEntry>[
-                                  PopupMenuItem(
+                                  const PopupMenuItem(
                                     value: 'menu1',
                                     child: Row(
                                       children: [
@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     ),
                                   ),
-                                  PopupMenuItem(
+                                  const PopupMenuItem(
                                     value: 'menu2',
                                     child: Row(
                                       children: [
@@ -115,8 +115,9 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     ),
                                   ),
-                                  PopupMenuDivider(height: 1), // Garis pembatas
-                                  PopupMenuItem(
+                                  const PopupMenuDivider(
+                                      height: 1), // Garis pembatas
+                                  const PopupMenuItem(
                                     value: 'menu3',
                                     child: Row(
                                       children: [
@@ -126,7 +127,7 @@ class _HomePageState extends State<HomePage> {
                                       ],
                                     ),
                                   ),
-                                  PopupMenuItem(
+                                  const PopupMenuItem(
                                     value: 'menu4',
                                     child: Row(
                                       children: [
@@ -151,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              SettingsPage(), // Arahkan ke SettingsPage
+                                              const SettingsPage(), // Arahkan ke SettingsPage
                                         ),
                                       );
                                       break;
@@ -165,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             Text(
                               formattedDate,
-                              style: TextStyle(color: Colors.white),
+                              style: const TextStyle(color: Colors.white),
                             ),
                             Container(
                               width: 45,
@@ -180,19 +181,19 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 color: Colors
                                     .white, // Background color of the dropdown
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.notifications_outlined,
                                   color: Colors.black,
                                 ),
                                 itemBuilder: (BuildContext context) =>
                                     <PopupMenuEntry>[
-                                  PopupMenuItem(
-                                    child: Text('Notifications'),
+                                  const PopupMenuItem(
                                     value: 'notification1',
+                                    child: Text('Notifications'),
                                   ),
-                                  PopupMenuItem(
-                                    child: Text('Challenges'),
+                                  const PopupMenuItem(
                                     value: 'notification2',
+                                    child: Text('Challenges'),
                                   ),
                                   // Add more PopupMenuItems as needed
                                 ],
@@ -204,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) =>
-                                                NotificationsPage()),
+                                                const NotificationsPage()),
                                       );
                                       break;
                                     case 'notification2':
@@ -295,55 +296,85 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Container(
                     height: 40,
-                    padding: const EdgeInsets.only(
-                        left:
-                            10), // Tambahkan padding untuk memberikan jarak antar kartu
+                    padding: const EdgeInsets.only(left: 10),
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: subjectList.length,
+                      itemCount: subjectList.length +
+                          1, // Tambahkan 1 untuk kartu tambahan untuk menambahkan subjek baru
                       itemBuilder: (BuildContext context, int position) {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedIndexSubject = position;
-                            });
-                          },
-                          child: Container(
-                            width: 90, // Atur lebar kartu menjadi lebih kecil
-                            margin: EdgeInsets.symmetric(
-                                horizontal:
-                                    5), // Tambahkan margin horizontal untuk memberikan jarak antar kartu
-                            child: Card(
-                              color: (selectedIndexSubject == position)
-                                  ? const Color.fromARGB(255, 157, 158, 251)
-                                  : null,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                  color: (selectedIndexSubject == position)
-                                      ? const Color.fromARGB(255, 136, 146, 237)
-                                      : Colors.transparent,
-                                  width: 4,
+                        if (position == subjectList.length) {
+                          // Tampilkan kartu tambahan untuk menambahkan subjek baru
+                          return GestureDetector(
+                            onTap: () {
+                              // Tampilkan dialog untuk menambahkan subjek baru
+                              _showAddSubjectDialog(context);
+                            },
+                            child: Container(
+                              width: 90,
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              child: Card(
+                                color: Colors.grey[
+                                    300], // Warna latar belakang untuk kartu tambahan
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: const BorderSide(
+                                      color: Colors.transparent),
+                                ),
+                                elevation: 5,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.add, // Tampilkan ikon tambah
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
-                              elevation: 5,
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: <Widget>[
-                                  Text(
-                                    subjectList[position],
-                                    style: TextStyle(
-                                      color: (selectedIndexSubject == position)
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
+                            ),
+                          );
+                        } else {
+                          // Tampilkan kartu subjek seperti biasa
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedIndexSubject = position;
+                              });
+                            },
+                            child: Container(
+                              width: 90,
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              child: Card(
+                                color: (selectedIndexSubject == position)
+                                    ? const Color.fromARGB(255, 157, 158, 251)
+                                    : null,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: (selectedIndexSubject == position)
+                                        ? const Color.fromARGB(
+                                            255, 136, 146, 237)
+                                        : Colors.transparent,
+                                    width: 4,
                                   ),
-                                ],
+                                ),
+                                elevation: 5,
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: <Widget>[
+                                    Text(
+                                      subjectList[position],
+                                      style: TextStyle(
+                                        color:
+                                            (selectedIndexSubject == position)
+                                                ? Colors.white
+                                                : Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                     ),
                   ),
@@ -379,7 +410,7 @@ class _HomePageState extends State<HomePage> {
                           },
                           child: Container(
                             width: 90,
-                            margin: EdgeInsets.symmetric(
+                            margin: const EdgeInsets.symmetric(
                                 horizontal:
                                     5), // Tambahkan margin horizontal untuk memberikan jarak antar kartu
                             child: Card(
@@ -432,7 +463,6 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ]),
                   ),
-                  
                   Container(
                     height: 55,
                     padding: const EdgeInsets.only(
@@ -645,7 +675,7 @@ class _HomePageState extends State<HomePage> {
                   child: Container(
                     width: 55,
                     height: 6,
-                    color: Color.fromARGB(255, 189, 188, 188),
+                    color: const Color.fromARGB(255, 189, 188, 188),
                   ),
                 ),
                 Container(
