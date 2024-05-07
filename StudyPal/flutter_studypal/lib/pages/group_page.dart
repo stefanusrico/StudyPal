@@ -26,393 +26,398 @@ class _GroupPageState extends State<GroupPage> {
     // Hitung jumlah pengguna yang online
     final int onlineCount = onlineStatus.where((status) => status).length;
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.fromARGB(255, 174, 196, 250), // Warna awal
-              Color.fromARGB(255, 115, 155, 255), // Warna akhir
-            ],
+    return SafeArea(
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color.fromARGB(255, 174, 196, 250), // Warna awal
+                Color.fromARGB(255, 115, 155, 255), // Warna akhir
+              ],
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(17, 25, 17, 12),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(17, 25, 17, 12),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              width: 45,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: PopupMenuButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                color: Colors
+                                    .white, // Background color of the dropdown
+                                icon: const Icon(
+                                  Icons.menu,
+                                  color: Colors.black,
+                                ),
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry>[
+                                  const PopupMenuItem(
+                                    value: 'menu1',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons
+                                            .person), // Tambahkan ikon di sebelah kiri teks
+                                        SizedBox(
+                                            width:
+                                                10), // Beri jarak antara ikon dan teks
+                                        Text('John Doe'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'menu2',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons
+                                            .logout_rounded), // Tambahkan ikon
+                                        SizedBox(width: 10),
+                                        Text('Sign Out'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuDivider(
+                                      height: 1), // Garis pembatas
+                                  const PopupMenuItem(
+                                    value: 'menu3',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.settings), // Ikon tambahan
+                                        SizedBox(width: 10),
+                                        Text('Settings'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'menu4',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.help), // Ikon tambahan
+                                        SizedBox(width: 10),
+                                        Text('Help'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                onSelected: (value) {
+                                  // Handle menu item selection here
+                                  switch (value) {
+                                    case 'menu1':
+                                      // Tambahkan logika menu 1
+                                      break;
+                                    case 'menu2':
+                                      // Tambahkan logika menu 2
+                                      break;
+                                    case 'menu3':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const SettingsPage(), // Arahkan ke SettingsPage
+                                        ),
+                                      );
+                                      break;
+                                    case 'menu4':
+                                      // Tambahkan logika menu 4
+                                      break;
+                                    // Add cases for more menu items as needed
+                                  }
+                                },
+                              ),
+                            ),
+                            const Text(
+                              "Group",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Container(
+                              width: 45,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: PopupMenuButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                color: Colors
+                                    .white, // Background color of the dropdown
+                                icon: const Icon(
+                                  Icons.notifications_outlined,
+                                  color: Colors.black,
+                                ),
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry>[
+                                  const PopupMenuItem(
+                                    value: 'notification1',
+                                    child: Text('Notifications'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'notification2',
+                                    child: Text('Challenges'),
+                                  ),
+                                  // Add more PopupMenuItems as needed
+                                ],
+                                onSelected: (value) {
+                                  // Handle notification selection here
+                                  switch (value) {
+                                    case 'notification1':
+                                      // Navigator.push(
+                                      // context,
+                                      // MaterialPageRoute(builder: (context) => NotificationPage1()),
+                                      // );
+                                      break;
+                                    case 'notification2':
+                                      // Navigator.push(
+                                      // context,
+                                      // MaterialPageRoute(builder: (context) => NotificationPage2()),
+                                      // );
+                                      break;
+                                    // Add cases for more notifications as needed
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 0,
+                        10), // Kurangi jarak untuk lebih dekat dengan grid
+                    child: RichText(
+                      text: TextSpan(
                         children: [
-                          Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: PopupMenuButton(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              color: Colors
-                                  .white, // Background color of the dropdown
-                              icon: const Icon(
-                                Icons.menu,
-                                color: Colors.black,
-                              ),
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry>[
-                                const PopupMenuItem(
-                                  value: 'menu1',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons
-                                          .person), // Tambahkan ikon di sebelah kiri teks
-                                      SizedBox(
-                                          width:
-                                              10), // Beri jarak antara ikon dan teks
-                                      Text('John Doe'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'menu2',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons
-                                          .logout_rounded), // Tambahkan ikon
-                                      SizedBox(width: 10),
-                                      Text('Sign Out'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuDivider(
-                                    height: 1), // Garis pembatas
-                                const PopupMenuItem(
-                                  value: 'menu3',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.settings), // Ikon tambahan
-                                      SizedBox(width: 10),
-                                      Text('Settings'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'menu4',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.help), // Ikon tambahan
-                                      SizedBox(width: 10),
-                                      Text('Help'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              onSelected: (value) {
-                                // Handle menu item selection here
-                                switch (value) {
-                                  case 'menu1':
-                                    // Tambahkan logika menu 1
-                                    break;
-                                  case 'menu2':
-                                    // Tambahkan logika menu 2
-                                    break;
-                                  case 'menu3':
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const SettingsPage(), // Arahkan ke SettingsPage
-                                      ),
-                                    );
-                                    break;
-                                  case 'menu4':
-                                    // Tambahkan logika menu 4
-                                    break;
-                                  // Add cases for more menu items as needed
-                                }
-                              },
-                            ),
-                          ),
-                          const Text(
-                            "Group",
+                          const TextSpan(
+                            text: 'Studying ',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                color: Colors
+                                    .white), // Warna untuk teks "Studying"
                           ),
-                          Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: PopupMenuButton(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              color: Colors
-                                  .white, // Background color of the dropdown
-                              icon: const Icon(
-                                Icons.notifications_outlined,
-                                color: Colors.black,
-                              ),
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry>[
-                                const PopupMenuItem(
-                                  value: 'notification1',
-                                  child: Text('Notifications'),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'notification2',
-                                  child: Text('Challenges'),
-                                ),
-                                // Add more PopupMenuItems as needed
-                              ],
-                              onSelected: (value) {
-                                // Handle notification selection here
-                                switch (value) {
-                                  case 'notification1':
-                                    // Navigator.push(
-                                    // context,
-                                    // MaterialPageRoute(builder: (context) => NotificationPage1()),
-                                    // );
-                                    break;
-                                  case 'notification2':
-                                    // Navigator.push(
-                                    // context,
-                                    // MaterialPageRoute(builder: (context) => NotificationPage2()),
-                                    // );
-                                    break;
-                                  // Add cases for more notifications as needed
-                                }
-                              },
+                          TextSpan(
+                            text:
+                                '$onlineCount member${onlineCount > 1 ? "s" : ""}', // Tambahkan "s" jika lebih dari satu
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 94, 108,
+                                  237), // Warna untuk teks jumlah member
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 0,
-                      0), // Kurangi jarak untuk lebih dekat dengan grid
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'Studying ',
-                          style: TextStyle(
-                              color:
-                                  Colors.white), // Warna untuk teks "Studying"
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          16, 0, 16, 0), // Padding untuk GridView
+                      child: GridView.builder(
+                        itemCount: pageSize,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.8,
                         ),
-                        TextSpan(
-                          text:
-                              '$onlineCount member${onlineCount > 1 ? "s" : ""}', // Tambahkan "s" jika lebih dari satu
+                        itemBuilder: (context, index) {
+                          final int itemIndex =
+                              (currentPage - 1) * pageSize + index;
+                          if (itemIndex >= totalItems) {
+                            return const SizedBox.shrink();
+                          }
+
+                          bool isOnline =
+                              onlineStatus[itemIndex]; // Status online pengguna
+
+                          return Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              side: BorderSide(
+                                color: isOnline
+                                    ? const Color.fromARGB(255, 136, 146, 237)
+                                    : Colors.transparent,
+                                width: isOnline ? 4 : 0,
+                              ),
+                            ),
+                            color: isOnline
+                                ? const Color.fromARGB(255, 157, 158, 251)
+                                : Colors.white,
+                            child: InkWell(
+                              onTap: () {
+                                // Aksi saat kartu ditekan
+                              },
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: isOnline
+                                        ? Colors.white
+                                        : const Color.fromARGB(
+                                            255, 157, 158, 251),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    data[itemIndex],
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isOnline
+                                          ? Colors.white
+                                          : const Color.fromARGB(
+                                              255, 157, 158, 251),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    "00:00:00",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isOnline
+                                          ? Colors.white
+                                          : const Color.fromARGB(
+                                              255, 157, 158, 251),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        0, 0, 20, 18), // Ubah padding agar lebih rapi
+                    child: Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.end, // Ubah posisinya ke kanan
+                      children: [
+                        Text(
+                          'Showing ${currentPage == totalPages ? totalItems - pageSize * (totalPages - 1) : pageSize} of $totalItems members',
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 94, 108,
-                                237), // Warna untuk teks jumlah member
+                            color: Colors.white,
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                        16, 0, 16, 0), // Padding untuk GridView
-                    child: GridView.builder(
-                      itemCount: pageSize,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 0.8,
-                      ),
-                      itemBuilder: (context, index) {
-                        final int itemIndex =
-                            (currentPage - 1) * pageSize + index;
-                        if (itemIndex >= totalItems) {
-                          return const SizedBox.shrink();
-                        }
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 65),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left_rounded,
+                              color: Colors.white),
+                          onPressed: currentPage > 1
+                              ? () {
+                                  setState(() {
+                                    currentPage--; // Navigasi ke halaman sebelumnya
+                                  });
+                                }
+                              : null, // Jika halaman pertama, tombol dinonaktifkan
+                        ),
 
-                        bool isOnline =
-                            onlineStatus[itemIndex]; // Status online pengguna
-
-                        return Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                            side: BorderSide(
-                              color: isOnline
-                                  ? const Color.fromARGB(255, 136, 146, 237)
-                                  : Colors.transparent,
-                              width: isOnline ? 4 : 0,
-                            ),
-                          ),
-                          color: isOnline
-                              ? const Color.fromARGB(255, 157, 158, 251)
-                              : Colors.white,
-                          child: InkWell(
-                            onTap: () {
-                              // Aksi saat kartu ditekan
-                            },
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: isOnline
+                        // Tombol angka-angka halaman
+                        for (int i = 1; i <= totalPages; i++)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5), // Beri jarak antar tombol
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  currentPage =
+                                      i; // Navigasi ke halaman tertentu
+                                });
+                              },
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all<Size>(
+                                  const Size(40,
+                                      40), // Ukuran minimum agar tombol simetris
+                                ),
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                  currentPage == i
+                                      ? const Color.fromARGB(255, 157, 158,
+                                          251) // Warna tombol saat halaman aktif
+                                      : Colors
+                                          .white, // Warna tombol saat halaman tidak aktif
+                                ),
+                                shape: MaterialStateProperty.all<
+                                    RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    side: BorderSide(
+                                      color: currentPage == i
+                                          ? const Color.fromARGB(255, 136, 146,
+                                              237) // Border jika halaman aktif
+                                          : Colors.transparent,
+                                      width: currentPage == i
+                                          ? 4
+                                          : 0, // Ketebalan border
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                i.toString(),
+                                style: TextStyle(
+                                  color: currentPage == i
                                       ? Colors.white
                                       : const Color.fromARGB(
                                           255, 157, 158, 251),
                                 ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  data[itemIndex],
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: isOnline
-                                        ? Colors.white
-                                        : const Color.fromARGB(
-                                            255, 157, 158, 251),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  "00:00:00",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isOnline
-                                        ? Colors.white
-                                        : const Color.fromARGB(
-                                            255, 157, 158, 251),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
-                        );
-                      },
+
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right_rounded,
+                              color: Colors.white),
+                          onPressed: currentPage < totalPages
+                              ? () {
+                                  setState(() {
+                                    currentPage++; // Navigasi ke halaman berikutnya
+                                  });
+                                }
+                              : null, // Jika halaman terakhir, tombol dinonaktifkan
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      0, 0, 20, 18), // Ubah padding agar lebih rapi
-                  child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.end, // Ubah posisinya ke kanan
-                    children: [
-                      Text(
-                        'Showing ${currentPage == totalPages ? totalItems - pageSize * (totalPages - 1) : pageSize} of $totalItems members',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 65),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left_rounded,
-                            color: Colors.white),
-                        onPressed: currentPage > 1
-                            ? () {
-                                setState(() {
-                                  currentPage--; // Navigasi ke halaman sebelumnya
-                                });
-                              }
-                            : null, // Jika halaman pertama, tombol dinonaktifkan
-                      ),
-
-                      // Tombol angka-angka halaman
-                      for (int i = 1; i <= totalPages; i++)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5), // Beri jarak antar tombol
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                currentPage = i; // Navigasi ke halaman tertentu
-                              });
-                            },
-                            style: ButtonStyle(
-                              minimumSize: MaterialStateProperty.all<Size>(
-                                const Size(40,
-                                    40), // Ukuran minimum agar tombol simetris
-                              ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                currentPage == i
-                                    ? const Color.fromARGB(255, 157, 158,
-                                        251) // Warna tombol saat halaman aktif
-                                    : Colors
-                                        .white, // Warna tombol saat halaman tidak aktif
-                              ),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(
-                                    color: currentPage == i
-                                        ? const Color.fromARGB(255, 136, 146,
-                                            237) // Border jika halaman aktif
-                                        : Colors.transparent,
-                                    width: currentPage == i
-                                        ? 4
-                                        : 0, // Ketebalan border
-                                  ),
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              i.toString(),
-                              style: TextStyle(
-                                color: currentPage == i
-                                    ? Colors.white
-                                    : const Color.fromARGB(255, 157, 158, 251),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right_rounded,
-                            color: Colors.white),
-                        onPressed: currentPage < totalPages
-                            ? () {
-                                setState(() {
-                                  currentPage++; // Navigasi ke halaman berikutnya
-                                });
-                              }
-                            : null, // Jika halaman terakhir, tombol dinonaktifkan
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            bottomDetailsSheet(), // Jika diperlukan, tetap tampilkan bagian bawah
-          ],
+                ],
+              ),
+              bottomDetailsSheet(), // Jika diperlukan, tetap tampilkan bagian bawah
+            ],
+          ),
         ),
       ),
     );

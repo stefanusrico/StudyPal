@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'dart:convert';
 import 'calendar_page.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class IconMenu {
   final IconData iconName;
@@ -40,6 +43,76 @@ class _HomePageState extends State<HomePage> {
   int selectedIndexSubject = -1;
   List<bool> switchValues = [false, false, false];
   String selectedSubject = '';
+  String? email;
+  String? token;
+  Map<String, dynamic>? userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData(); // Panggil fungsi untuk mengambil email saat inisialisasi halaman
+  }
+
+  Future<void> _getEmailandToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Set nilai email dari SharedPreferences ke variabel email
+      email = prefs.getString('email');
+      token = prefs.getString('token');
+    });
+  }
+
+  Future<Map<String, dynamic>> getUserProfile(
+      String email, String token) async {
+    final apiUrl = Uri.parse('http://10.0.2.2:4000/profile/$email');
+
+    try {
+      final response = await http.get(
+        apiUrl,
+        headers: {
+          "Authorization":
+              "Bearer $token", // Sertakan token dalam header Authorization
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Konversi respons menjadi map JSON
+        final Map<String, dynamic> userData = json.decode(response.body);
+        return userData;
+      } else {
+        // Tangani kesalahan jika status kode bukan 200
+        throw Exception('Failed to load user profile');
+      }
+    } catch (error) {
+      // Tangani kesalahan jaringan
+      throw Exception('Network error: $error');
+    }
+  }
+
+  Future<void> fetchData() async {
+    try {
+      // Panggil fungsi untuk mengambil email dan token
+      await _getEmailandToken();
+
+      // Pastikan email dan token tidak null
+      if (email != null && token != null) {
+        // Panggil getUserProfile dengan email dan token
+        Map<String, dynamic> userProfileData =
+            await getUserProfile(email!, token!);
+
+        // Tetapkan hasil getUserProfile ke userProfile
+        setState(() {
+          userProfile = userProfileData;
+        });
+      } else {
+        // Tangani jika email atau token null
+        throw Exception('Email or token is null');
+      }
+    } catch (error) {
+      // Tangani kesalahan
+      throw Exception('Error fetching user profile: $error');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,307 +121,404 @@ class _HomePageState extends State<HomePage> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color.fromARGB(255, 174, 196, 250), // Warna awal
-                Color.fromARGB(255, 115, 155, 255), // Warna akhir
-              ],
+      home: SafeArea(
+        child: Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color.fromARGB(255, 174, 196, 250), // Warna awal
+                  Color.fromARGB(255, 115, 155, 255), // Warna akhir
+                ],
+              ),
             ),
-          ),
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(17, 25, 17, 25),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: 45,
-                              height: 45,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: PopupMenuButton(
-                                shape: RoundedRectangleBorder(
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(17, 25, 17, 25),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                width: 45,
+                                height: 45,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                color: Colors
-                                    .white, // Background color of the dropdown
-                                icon: const Icon(
-                                  Icons.menu,
-                                  color: Colors.black,
-                                ),
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry>[
-                                  const PopupMenuItem(
-                                    value: 'menu1',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons
-                                            .person), // Tambahkan ikon di sebelah kiri teks
-                                        SizedBox(
-                                            width:
-                                                10), // Beri jarak antara ikon dan teks
-                                        Text('John Doe'),
-                                      ],
-                                    ),
+                                child: PopupMenuButton(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  const PopupMenuItem(
-                                    value: 'menu2',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons
-                                            .logout_rounded), // Tambahkan ikon
-                                        SizedBox(width: 10),
-                                        Text('Sign Out'),
-                                      ],
-                                    ),
-                                  ),
-                                  const PopupMenuDivider(
-                                      height: 1), // Garis pembatas
-                                  const PopupMenuItem(
-                                    value: 'menu3',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.settings), // Ikon tambahan
-                                        SizedBox(width: 10),
-                                        Text('Settings'),
-                                      ],
-                                    ),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'menu4',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.help), // Ikon tambahan
-                                        SizedBox(width: 10),
-                                        Text('Help'),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                                onSelected: (value) {
-                                  // Handle menu item selection here
-                                  switch (value) {
-                                    case 'menu1':
-                                      // Tambahkan logika menu 1
-                                      break;
-                                    case 'menu2':
-                                      // Tambahkan logika menu 2
-                                      break;
-                                    case 'menu3':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const SettingsPage(), // Arahkan ke SettingsPage
-                                        ),
-                                      );
-                                      break;
-                                    case 'menu4':
-                                      // Tambahkan logika menu 4
-                                      break;
-                                    // Add cases for more menu items as needed
-                                  }
-                                },
-                              ),
-                            ),
-                            Text(
-                              formattedDate,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            Container(
-                              width: 45,
-                              height: 45,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: PopupMenuButton(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                color: Colors
-                                    .white, // Background color of the dropdown
-                                icon: const Icon(
-                                  Icons.notifications_outlined,
-                                  color: Colors.black,
-                                ),
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry>[
-                                  const PopupMenuItem(
-                                    value: 'notification1',
-                                    child: Text('Notifications'),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'notification2',
-                                    child: Text('Challenges'),
-                                  ),
-                                  // Add more PopupMenuItems as needed
-                                ],
-                                onSelected: (value) {
-                                  // Handle notification selection here
-                                  switch (value) {
-                                    case 'notification1':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const NotificationsPage()),
-                                      );
-                                      break;
-                                    case 'notification2':
-                                      // Navigator.push(
-                                      // context,
-                                      // MaterialPageRoute(builder: (context) => NotificationPage2()),
-                                      // );
-                                      break;
-                                    // Add cases for more notifications as needed
-                                  }
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  StreamBuilder<int>(
-                    stream: widget.stopWatchTimer.rawTime,
-                    initialData: widget.stopWatchTimer.rawTime.value,
-                    builder: (context, snapshot) {
-                      final value = snapshot.data ?? 0;
-                      final displayTime = StopWatchTimer.getDisplayTime(value,
-                          hours: true); // Atur format waktu
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 24, 0, 20),
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            displayTime,
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 0, 0,
-                        55), // Memberikan padding 10.0 di atas dan 20.0 di bawah
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Break 20m 17s',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Subject',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            _showEditSubjectDialog(context);
-                          },
-                          child: const Text(
-                            'Edit Subject',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    height: 40,
-                    padding: const EdgeInsets.only(left: 10),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: subjectList.length +
-                          1, // Tambahkan 1 untuk kartu tambahan untuk menambahkan subjek baru
-                      itemBuilder: (BuildContext context, int position) {
-                        if (position == subjectList.length) {
-                          // Tampilkan kartu tambahan untuk menambahkan subjek baru
-                          return GestureDetector(
-                            onTap: () {
-                              // Tampilkan dialog untuk menambahkan subjek baru
-                              _showAddSubjectDialog(context);
-                            },
-                            child: Container(
-                              width: 90,
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
-                              child: Card(
-                                color: Colors.grey[
-                                    300], // Warna latar belakang untuk kartu tambahan
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: const BorderSide(
-                                      color: Colors.transparent),
-                                ),
-                                elevation: 5,
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.add, // Tampilkan ikon tambah
+                                  color: Colors
+                                      .white, // Background color of the dropdown
+                                  icon: const Icon(
+                                    Icons.menu,
                                     color: Colors.black,
                                   ),
+                                  itemBuilder: (BuildContext context) =>
+                                      <PopupMenuEntry>[
+                                    PopupMenuItem(
+                                      value: 'menu1',
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons
+                                              .person), // Tambahkan ikon di sebelah kiri teks
+                                          const SizedBox(
+                                              width:
+                                                  10), // Beri jarak antara ikon dan teks
+                                          Text(userProfile?['fullName'] ?? ''),
+                                        ],
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'menu2',
+                                      onTap: () {
+                                        debugPrint(
+                                            '${userProfile?['fullName'] ?? ''}');
+                                      },
+                                      child: const Row(
+                                        children: [
+                                          Icon(Icons
+                                              .logout_rounded), // Tambahkan ikon
+                                          SizedBox(width: 10),
+                                          Text('Sign Out'),
+                                        ],
+                                      ),
+                                    ),
+
+                                    const PopupMenuDivider(
+                                        height: 1), // Garis pembatas
+                                    const PopupMenuItem(
+                                      value: 'menu3',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.settings), // Ikon tambahan
+                                          SizedBox(width: 10),
+                                          Text('Settings'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'menu4',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.help), // Ikon tambahan
+                                          SizedBox(width: 10),
+                                          Text('Help'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  onSelected: (value) {
+                                    // Handle menu item selection here
+                                    switch (value) {
+                                      case 'menu1':
+                                        // Tambahkan logika menu 1
+                                        break;
+                                      case 'menu2':
+                                        // Tambahkan logika menu 2
+                                        break;
+                                      case 'menu3':
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const SettingsPage(), // Arahkan ke SettingsPage
+                                          ),
+                                        );
+                                        break;
+                                      case 'menu4':
+                                        // Tambahkan logika menu 4
+                                        break;
+                                      // Add cases for more menu items as needed
+                                    }
+                                  },
                                 ),
                               ),
+                              Text(
+                                formattedDate,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              Container(
+                                width: 45,
+                                height: 45,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: PopupMenuButton(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  color: Colors
+                                      .white, // Background color of the dropdown
+                                  icon: const Icon(
+                                    Icons.notifications_outlined,
+                                    color: Colors.black,
+                                  ),
+                                  itemBuilder: (BuildContext context) =>
+                                      <PopupMenuEntry>[
+                                    const PopupMenuItem(
+                                      value: 'notification1',
+                                      child: Text('Notifications'),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'notification2',
+                                      child: Text('Challenges'),
+                                    ),
+                                    // Add more PopupMenuItems as needed
+                                  ],
+                                  onSelected: (value) {
+                                    // Handle notification selection here
+                                    switch (value) {
+                                      case 'notification1':
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const NotificationsPage()),
+                                        );
+                                        break;
+                                      case 'notification2':
+                                        // Navigator.push(
+                                        // context,
+                                        // MaterialPageRoute(builder: (context) => NotificationPage2()),
+                                        // );
+                                        break;
+                                      // Add cases for more notifications as needed
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    StreamBuilder<int>(
+                      stream: widget.stopWatchTimer.rawTime,
+                      initialData: widget.stopWatchTimer.rawTime.value,
+                      builder: (context, snapshot) {
+                        final value = snapshot.data ?? 0;
+                        final displayTime = StopWatchTimer.getDisplayTime(value,
+                            hours: true); // Atur format waktu
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 24, 0, 20),
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              displayTime,
+                              style: const TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          );
-                        } else {
-                          // Tampilkan kartu subjek seperti biasa
+                          ),
+                        );
+                      },
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(0, 0, 0,
+                          55), // Memberikan padding 10.0 di atas dan 20.0 di bawah
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Break 20m 17s',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Subject',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              _showEditSubjectDialog(context);
+                            },
+                            child: const Text(
+                              'Edit Subject',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      height: 40,
+                      padding: const EdgeInsets.only(left: 10),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: subjectList.length +
+                            1, // Tambahkan 1 untuk kartu tambahan untuk menambahkan subjek baru
+                        itemBuilder: (BuildContext context, int position) {
+                          if (position == subjectList.length) {
+                            return GestureDetector(
+                              onTap: () {
+                                _showAddSubjectDialog(context);
+                              },
+                              child: Container(
+                                width: 120,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Card(
+                                  color: Colors.grey[
+                                      100], // Warna latar belakang untuk kartu tambahan
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: const BorderSide(
+                                      color: Colors.transparent,
+                                    ),
+                                  ),
+                                  elevation: 5,
+                                  child: const Center(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons
+                                              .add_circle_outline, // Tampilkan ikon tambah
+                                          color: Colors.black,
+                                        ),
+                                        SizedBox(
+                                            width:
+                                                3), // Jarak antara ikon dan teks
+                                        Flexible(
+                                          child: Text('Add New Subject',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                // fontSize: 16,
+                                              ),
+                                              overflow: TextOverflow.ellipsis),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          } else {
+                            // Tampilkan kartu subjek seperti biasa
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndexSubject = position;
+                                });
+                              },
+                              child: Container(
+                                width: 90,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Card(
+                                  color: (selectedIndexSubject == position)
+                                      ? const Color.fromARGB(255, 157, 158, 251)
+                                      : null,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(
+                                      color: (selectedIndexSubject == position)
+                                          ? const Color.fromARGB(
+                                              255, 136, 146, 237)
+                                          : Colors.transparent,
+                                      width: 4,
+                                    ),
+                                  ),
+                                  elevation: 5,
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: <Widget>[
+                                      Text(
+                                        subjectList[position],
+                                        style: TextStyle(
+                                          color:
+                                              (selectedIndexSubject == position)
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Method',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ]),
+                    ),
+                    Container(
+                      height: 110,
+                      padding: const EdgeInsets.only(
+                          left:
+                              10), // Tambahkan padding untuk memberikan jarak antar kartu
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: iconList.length,
+                        itemBuilder: (BuildContext context, int position) {
                           return GestureDetector(
                             onTap: () {
                               setState(() {
-                                selectedIndexSubject = position;
+                                selectedIndex = position;
                               });
                             },
                             child: Container(
                               width: 90,
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal:
+                                      5), // Tambahkan margin horizontal untuk memberikan jarak antar kartu
                               child: Card(
-                                color: (selectedIndexSubject == position)
+                                color: (selectedIndex == position)
                                     ? const Color.fromARGB(255, 157, 158, 251)
                                     : null,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
-                                    color: (selectedIndexSubject == position)
+                                    color: (selectedIndex == position)
                                         ? const Color.fromARGB(
                                             255, 136, 146, 237)
                                         : Colors.transparent,
@@ -360,13 +530,13 @@ class _HomePageState extends State<HomePage> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceAround,
                                   children: <Widget>[
+                                    Icon(iconList[position].iconName),
                                     Text(
-                                      subjectList[position],
+                                      iconList[position].titleIcon,
                                       style: TextStyle(
-                                        color:
-                                            (selectedIndexSubject == position)
-                                                ? Colors.white
-                                                : Colors.black,
+                                        color: (selectedIndex == position)
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                     ),
                                   ],
@@ -374,116 +544,46 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           );
-                        }
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Method',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ]),
-                  ),
-                  Container(
-                    height: 110,
-                    padding: const EdgeInsets.only(
-                        left:
-                            10), // Tambahkan padding untuk memberikan jarak antar kartu
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: iconList.length,
-                      itemBuilder: (BuildContext context, int position) {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedIndex = position;
-                            });
-                          },
-                          child: Container(
-                            width: 90,
-                            margin: const EdgeInsets.symmetric(
-                                horizontal:
-                                    5), // Tambahkan margin horizontal untuk memberikan jarak antar kartu
-                            child: Card(
-                              color: (selectedIndex == position)
-                                  ? const Color.fromARGB(255, 157, 158, 251)
-                                  : null,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(
-                                  color: (selectedIndex == position)
-                                      ? const Color.fromARGB(255, 136, 146, 237)
-                                      : Colors.transparent,
-                                  width: 4,
-                                ),
-                              ),
-                              elevation: 5,
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: <Widget>[
-                                  Icon(iconList[position].iconName),
-                                  Text(
-                                    iconList[position].titleIcon,
-                                    style: TextStyle(
-                                      color: (selectedIndex == position)
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                                  ),
-                                ],
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Configuration',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        );
-                      },
+                          ]),
                     ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Container(
+                      height: 55,
+                      padding: const EdgeInsets.only(
+                          left:
+                              10), // Atur padding untuk memberikan jarak antar kartu
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
                         children: [
-                          Text(
-                            'Configuration',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ]),
-                  ),
-                  Container(
-                    height: 55,
-                    padding: const EdgeInsets.only(
-                        left:
-                            10), // Atur padding untuk memberikan jarak antar kartu
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        buildActionCard('Keep Screen On',
-                            0), // Indeks 0 untuk switch pertama
-                        buildActionCard('Hide Other Tabs',
-                            1), // Indeks 1 untuk switch kedua
-                        buildActionCard(
-                            'Silent Mode', 2), // Indeks 2 untuk switch ketiga
-                      ],
+                          buildActionCard('Keep Screen On',
+                              0), // Indeks 0 untuk switch pertama
+                          buildActionCard('Hide Other Tabs',
+                              1), // Indeks 1 untuk switch kedua
+                          buildActionCard(
+                              'Silent Mode', 2), // Indeks 2 untuk switch ketiga
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              bottomDetailsSheet(),
-            ],
+                  ],
+                ),
+                bottomDetailsSheet(),
+              ],
+            ),
           ),
         ),
       ),

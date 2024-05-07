@@ -6,6 +6,7 @@ import 'package:flutter_studypal/components/horizontal_line.dart';
 import 'package:flutter_studypal/components/square_tile.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -225,8 +226,6 @@ class _LoginPageState extends State<LoginPage> {
       'password': passwordController.text,
     });
 
-    debugPrint(jsonData);
-
     try {
       final response = await http.post(
         apiUrl,
@@ -239,6 +238,15 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final token = responseData['token'];
+        debugPrint('Token: $token');
+
+        // Simpan email ke SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('email', emailController.text);
+        prefs.setString('token', token);
+
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         final jsonResponse = json.decode(response.body);
