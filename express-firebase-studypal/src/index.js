@@ -2,24 +2,10 @@ const express = require("express")
 const cors = require("cors")
 const admin = require("firebase-admin")
 const bcrypt = require("bcrypt")
-const scrypt = require("scrypt")
+const jwt = require("jsonwebtoken")
 const serviceAccount = require("C:\\Users\\ACER\\Desktop\\express-firebase-studypal\\firebase_credentials.json")
 const { initializeApp } = require("firebase/app")
-const {
-  getFirestore,
-  collection,
-  addDoc,
-  getDoc,
-  doc,
-} = require("firebase/firestore/lite")
-const {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-} = require("firebase/auth")
 const cookieParser = require("cookie-parser")
-const { UserRecord } = require("firebase-admin/auth")
 
 const app = express()
 app.use(express.json())
@@ -30,111 +16,53 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 })
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDcA_ZWNAqONwPYr4KcMN4BxWTkFVvgqJI",
-  authDomain: "studypal-4bfd8.firebaseapp.com",
-  databaseURL:
-    "https://studypal-4bfd8-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "studypal-4bfd8",
-  storageBucket: "studypal-4bfd8.appspot.com",
-  messagingSenderId: "117521201224",
-  appId: "1:117521201224:web:a3561bdda2d6b89a95407d",
-  measurementId: "G-1ER1KD5MKL",
+const db = admin.firestore()
+const revokedTokens = new Set()
+const secretKey = "adit"
+
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
 }
 
-const firebaseApp = initializeApp(firebaseConfig)
-const db = getFirestore(firebaseApp)
-const UserCollection = collection(db, "Users")
-const auth = getAuth(firebaseApp)
-
-const authAdmin = admin.auth()
-
-async function isAuthenticated(req, res, next) {
-  const token = req.cookies.token
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" })
-  }
-
-  try {
-    const decodedToken = await authAdmin.verifyIdToken(token)
-    req.user = decodedToken
-    console.log(decodedToken)
-    next()
-  } catch (error) {
-    console.error("Error verifying token: ", error)
-    return res.status(403).json({ message: "Forbidden" })
-  }
-}
-
-app.get("/secure-route", isAuthenticated, (req, res) => {
-  res.send("Protected Route Accessed. User ID: " + req.user.uid)
-})
-
-app.get("/check-token", isAuthenticated, async (req, res) => {
-  try {
-    const authUser = await authAdmin.getUser(req.user.uid)
-    console.log(authUser)
-    const userData = {
-      uid: authUser.uid,
-      email: authUser.email,
-      displayName: authUser.displayName,
-      creationTime: authUser.metadata.creationTime,
-      lastSignInTime: authUser.metadata.lastSignInTime,
-      lastRefreshTime: authUser.metadata.lastRefreshTime,
-      tokenValidAfterTime: authUser.tokensValidAfterTime,
-    }
-
-    res.send({
-      message: "Token is valid",
-      user: userData,
-    })
-  } catch (error) {
-    console.error("Error fetching user data:", error)
-    res.status(500).send({ error: "Error fetching user data" })
-  }
-})
-
-const hash_config = {
-  algorithm: "SCRYPT",
-  base64_signer_key:
-    "HWiJ3iFGE6kew4Kf/G431YCbEXb8r6OrUCVc5A9tBXy4zhYBQDrrOOHs6Ph6vgQFU+QLUX0kqrxZrIV9vkCfNw==",
-  base64_salt_separator: "Bw==",
-  rounds: 8,
-  mem_cost: 14,
+// Fungsi untuk memeriksa apakah email sudah terdaftar
+async function isEmailRegistered(email) {
+  const user = await db.collection("users").where("email", "==", email).get()
+  return !user.empty
 }
 
 app.post("/register", async (req, res) => {
   try {
-    const { email, password, first_name, last_name, gender, birth_date } =
-      req.body
+    if (!isValidEmail(req.body.email)) {
+      return res
+        .status(400)
+        .json({ statusCode: "400", message: "Invalid email format" })
+    }
 
-    const userRecord = await authAdmin.createUser({
-      email: email,
-      password: password,
-    })
+    if (await isEmailRegistered(req.body.email)) {
+      return res
+        .status(400)
+        .json({ statusCode: "400", message: "Email is already registered" })
+    }
 
-    console.log(userRecord)
-
-    const uid = userRecord.uid
-
-    // Tambahkan pengguna ke Firestore
-    await addDoc(UserCollection, {
-      uid: uid,
-      email: email,
-      first_name: first_name,
-      last_name: last_name,
-      gender: gender,
-      birth_date: birth_date,
-    })
-
-    res.send({
-      msg: "User registered successfully",
-      uid: uid,
-    })
+    const encrypted_password = await bcrypt.hash(req.body.password, 10)
+    console.log(req.body)
+    const id = req.body.email
+    const userJson = {
+      email: req.body.email,
+      password: encrypted_password,
+      first_name: req.body.first_name,
+      last_name: req.body.last_name,
+      gender: req.body.gender,
+      birth_date: req.body.birth_date,
+    }
+    const usersDb = db.collection("users")
+    const response = await usersDb.doc(id).set(userJson)
+    res
+      .status(200)
+      .json({ statusCode: "200", message: "Registered Successfully" })
   } catch (error) {
-    console.error("Error registering user: ", error)
-    res.status(500).send({ error: "Error registering user" })
+    res.status(500).json({ statusCode: "500", message: error.message })
   }
 })
 
@@ -142,32 +70,126 @@ app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body
 
-    const userRecord = await admin.auth().getUserByEmail(email)
+    const userQuerySnapshot = await db
+      .collection("users")
+      .where("email", "==", email)
+      .limit(1)
+      .get()
+    if (userQuerySnapshot.empty) {
+      return res.status(401).json({ error: "Invalid email or password" })
+    }
 
-    // Jika kredensial valid, kirimkan token
+    // Ambil data user
+    const userData = userQuerySnapshot.docs[0].data()
 
-    const token = await admin.auth().createCustomToken(userRecord.uid)
+    // Periksa apakah password yang diberikan cocok dengan yang tersimpan di database
+    const passwordMatch = await bcrypt.compare(password, userData.password)
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid email or password" })
+    }
 
-    res.cookie("token", token, { httpOnly: true })
-    res.send({
-      msg: "Login successful",
-      uid: userRecord.uid,
-      token: token,
+    const token = jwt.sign({ email: userData.email }, secretKey, {
+      expiresIn: "24h",
     })
+    console.log(userData.email)
+    // Login berhasil, kirim JWT sebagai respons
+    console.log(token)
+    res.json({ message: "Login successful", token })
   } catch (error) {
-    console.error("Error logging in: ", error)
-    res.status(500).send({ error: "Error logging in" })
+    console.error("Error during login:", error)
+    res.status(500).json({ error: "Failed to login" })
   }
 })
 
-app.post("/logout", async (req, res) => {
+app.post("/check-token", async (req, res) => {
   try {
-    res.clearCookie("token")
-    await signOut(auth)
-    res.send({ msg: "Logout successful" })
+    // Ambil token dari body request
+    const token = req.body.token
+
+    if (!token) {
+      return res.status(400).json({ error: "Token is missing" })
+    }
+
+    // Verifikasi token
+    jwt.verify(token, secretKey, async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: "Invalid token" })
+      }
+
+      // Dapatkan data pengguna dari email yang terkandung dalam token
+      const userEmail = decoded.email
+      const userQuerySnapshot = await db
+        .collection("users")
+        .where("email", "==", userEmail)
+        .limit(1)
+        .get()
+
+      if (userQuerySnapshot.empty) {
+        return res.status(404).json({ error: "User not found" })
+      }
+
+      // Ambil data pengguna dari snapshot dan kirimkan sebagai respons
+      const userData = userQuerySnapshot.docs[0].data()
+      res.json(userData)
+    })
   } catch (error) {
-    console.error("Error logging out: ", error)
-    res.status(500).send({ error: "Error logging out" })
+    console.error("Error during token check:", error)
+    res.status(500).json({ error: "Failed to check token" })
+  }
+})
+
+app.post("/logout", (req, res) => {
+  try {
+    const { token } = req.body
+
+    // Tambahkan token ke dalam daftar token yang sudah logout
+    revokedTokens.add(token)
+    console.log(revokedTokens)
+
+    // Berikan respons yang sesuai
+    res.status(200).json({ message: "Logout successful" })
+  } catch (error) {
+    console.error("Error during logout:", error)
+    res.status(500).json({ error: "Failed to logout" })
+  }
+})
+
+app.use((req, res, next) => {
+  const authorizationHeader = req.headers.authorization
+
+  if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" })
+  }
+
+  const token = authorizationHeader.split(" ")[1]
+
+  // Periksa apakah token ada dalam daftar token yang sudah logout
+  if (revokedTokens.has(token)) {
+    return res.status(401).json({ error: "Token revoked" })
+  }
+
+  // Lanjutkan ke middleware berikutnya jika token masih valid
+  next()
+})
+
+app.get("/profile/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    const userData = await db.collection("users").doc(userId).get()
+
+    if (!userData.exists) {
+      return res.status(404).json({ error: "User not found" })
+    }
+
+    const { first_name, last_name, email, birth_date } = userData.data()
+
+    const fullName = `${first_name} ${last_name}`
+
+    res.status(200).json({ fullName, email, birth_date })
+  } catch (error) {
+    console.error("Error fetching user data:", error)
+    res.status(500).json({ error: "Failed to fetch user data" })
   }
 })
 
