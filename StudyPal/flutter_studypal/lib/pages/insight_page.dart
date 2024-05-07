@@ -36,7 +36,7 @@ class _InsightPageState extends State<InsightPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(17, 25, 17, 25),
+                    padding: const EdgeInsets.fromLTRB(17, 16, 17, 25),
                     child: Column(
                       children: [
                         Row(

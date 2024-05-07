@@ -51,7 +51,7 @@ class _MainScreenState extends State<MainScreen> {
         navKey: groupNavKey,
       ),
       NavModel(
-        page: const ProfilePage(),
+        page:ProfilePage(),
         navKey: profileNavKey,
       ),
     ];
@@ -62,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
       // Jika timer berjalan, opsi "Pause" dan "Stop"
       return [
         SpeedDialChild(
-          child: Icon(Icons.pause, color: Colors.orange),
+          child: Icon(Icons.pause, color: Color.fromARGB(255, 204, 157, 255)),
           label: 'Pause',
           onTap: () {
             _stopWatchTimer.onStopTimer(); // Berhenti, tapi tidak reset
@@ -72,7 +72,7 @@ class _MainScreenState extends State<MainScreen> {
           },
         ),
         SpeedDialChild(
-          child: Icon(Icons.stop, color: Colors.red),
+          child: Icon(Icons.stop, color: Color.fromARGB(255, 184, 113, 255)),
           label: 'Stop',
           onTap: () {
             _stopWatchTimer.onResetTimer(); // Reset timer
@@ -86,7 +86,7 @@ class _MainScreenState extends State<MainScreen> {
       // Jika timer mulai tetapi sedang dihentikan, opsi "Resume" dan "Stop"
       return [
         SpeedDialChild(
-          child: Icon(Icons.play_arrow_rounded, color: Colors.green),
+          child: Icon(Icons.play_arrow_rounded, color: Color.fromARGB(255, 236, 130, 248)),
           label: 'Resume',
           onTap: () {
             _stopWatchTimer.onStartTimer(); // Mulai lagi
@@ -96,7 +96,7 @@ class _MainScreenState extends State<MainScreen> {
           },
         ),
         SpeedDialChild(
-          child: Icon(Icons.stop, color: Colors.red),
+          child: Icon(Icons.stop, color: const Color.fromARGB(255, 146, 54, 244)),
           label: 'Stop',
           onTap: () {
             _stopWatchTimer.onResetTimer(); // Reset timer
@@ -110,8 +110,8 @@ class _MainScreenState extends State<MainScreen> {
       // Jika timer belum dimulai, opsi "Mulai timer"
       return [
         SpeedDialChild(
-          child: Icon(Icons.timer, color: Colors.green),
-          label: 'Mulai timer',
+          child: Icon(Icons.timer, color: Color.fromARGB(255, 196, 141, 255)),
+          label: 'Timer start',
           onTap: () {
             _stopWatchTimer.onStartTimer(); // Mulai timer
             setState(() {

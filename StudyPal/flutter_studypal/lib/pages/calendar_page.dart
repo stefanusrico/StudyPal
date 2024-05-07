@@ -271,40 +271,56 @@ class _CalendarPageState extends State<CalendarPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ListTile(
-                      title: Text(
-                        hour,
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                        ),
+  title: Row(
+    children: [
+      // Label waktu per jam
+      Text(
+        hour,
+        style: TextStyle(
+          color: Colors.grey[700],
+        ),
+      ),
+      // Tambahkan jarak antara waktu dan kartu subjek
+      SizedBox(width: 10), // Jarak horizontal 10 piksel
+
+      // Kartu subjek dan waktu yang bisa discroll secara horizontal
+      if (eventsForHour.isNotEmpty)
+        Expanded( // Pastikan `Row` dapat menggunakan seluruh lebar yang tersisa
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal, // Untuk scroll horizontal
+            child: Row(
+              children: eventsForHour.map((event) {
+                String formattedTime = DateFormat.jm().format(event.startTime);
+
+                return Card(
+                  color: Color.fromARGB(255, 247, 195, 254),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(17, 5, 17, 5),
+                    child: Text(
+                      '${event.subject}, $formattedTime', // Format teks dalam kartu
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
                       ),
-                      subtitle: eventsForHour.isNotEmpty
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: eventsForHour.map((event) {
-                                return Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: Text(
-                                      event.subject,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            )
-                          : null,
                     ),
-                    Divider(
-                      color: Colors.grey[400], // Garis pembatas
-                      height: 1,
-                      thickness: 1,
-                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+    ],
+  ),
+),
+
+                    // Divider(
+                    //   color: Colors.grey[400], // Garis pembatas
+                    //   height: 1,
+                    //   thickness: 1,
+                    // ),
                   ],
                 );
               },

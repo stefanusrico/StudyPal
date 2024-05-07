@@ -45,7 +45,7 @@ class _GroupPageState extends State<GroupPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(17, 25, 17, 12),
+                    padding: const EdgeInsets.fromLTRB(17, 16, 17, 0),
                     child: Column(
                       children: [
                         Row(

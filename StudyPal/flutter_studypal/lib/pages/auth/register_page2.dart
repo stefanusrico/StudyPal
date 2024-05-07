@@ -242,7 +242,7 @@ class _RegisterPageState extends State<RegisterPage2> {
         debugPrint('Data sent successfully');
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
         debugPrint('Failed to send data: ${response.statusCode}');

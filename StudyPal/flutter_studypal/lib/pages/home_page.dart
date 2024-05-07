@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(17, 25, 17, 25),
+                      padding: const EdgeInsets.fromLTRB(17, 16, 17, 30),
                       child: Column(
                         children: [
                           Row(
