@@ -22,6 +22,7 @@ List<IconMenu> iconList = [
 ];
 
 List<String> subjectList = [
+  "",
   "Math",
   "English",
   "Science",
@@ -113,7 +114,9 @@ class _HomePageState extends State<HomePage> {
       throw Exception('Error fetching user profile: $error');
     }
   }
-
+void _updateSubject() {
+    setState(() {});
+  }
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
@@ -360,7 +363,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              _showEditSubjectDialog(context);
+                              _showEditSubjectDialog(context, _updateSubject);
                             },
                             child: const Text(
                               'Edit Subject',
@@ -374,108 +377,100 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Container(
-                      height: 40,
-                      padding: const EdgeInsets.only(left: 10),
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: subjectList.length +
-                            1, // Tambahkan 1 untuk kartu tambahan untuk menambahkan subjek baru
-                        itemBuilder: (BuildContext context, int position) {
-                          if (position == subjectList.length) {
-                            return GestureDetector(
-                              onTap: () {
-                                _showAddSubjectDialog(context);
-                              },
-                              child: Container(
-                                width: 120,
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 5),
-                                child: Card(
-                                  color: Colors.grey[
-                                      100], // Warna latar belakang untuk kartu tambahan
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: const BorderSide(
-                                      color: Colors.transparent,
-                                    ),
-                                  ),
-                                  elevation: 5,
-                                  child: const Center(
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons
-                                              .add_circle_outline, // Tampilkan ikon tambah
-                                          color: Colors.black,
-                                        ),
-                                        SizedBox(
-                                            width:
-                                                3), // Jarak antara ikon dan teks
-                                        Flexible(
-                                          child: Text('Add New Subject',
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                // fontSize: 16,
-                                              ),
-                                              overflow: TextOverflow.ellipsis),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          } else {
-                            // Tampilkan kartu subjek seperti biasa
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedIndexSubject = position;
-                                });
-                              },
-                              child: Container(
-                                width: 90,
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 5),
-                                child: Card(
-                                  color: (selectedIndexSubject == position)
-                                      ? const Color.fromARGB(255, 157, 158, 251)
-                                      : null,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    side: BorderSide(
-                                      color: (selectedIndexSubject == position)
-                                          ? const Color.fromARGB(
-                                              255, 136, 146, 237)
-                                          : Colors.transparent,
-                                      width: 4,
-                                    ),
-                                  ),
-                                  elevation: 5,
-                                  child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: <Widget>[
-                                      Text(
-                                        subjectList[position],
-                                        style: TextStyle(
-                                          color:
-                                              (selectedIndexSubject == position)
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                        },
+  height: 40,
+  padding: const EdgeInsets.only(left: 10),
+  child: ListView.builder(
+    scrollDirection: Axis.horizontal,
+    itemCount: subjectList.length, // Sesuaikan itemCount ke panjang asli subjectList
+    itemBuilder: (BuildContext context, int position) {
+      // Lewati item pertama dengan mengakses indeks dari posisi + 1
+      if (position == subjectList.length - 1) {
+        return GestureDetector(
+          onTap: () {
+            _showAddSubjectDialog(context);
+          },
+          child: Container(
+            width: 120,
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            child: Card(
+              color: Colors.grey[100], // Warna latar belakang untuk kartu tambahan
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(
+                  color: Colors.transparent,
+                ),
+              ),
+              elevation: 5,
+              child: const Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_circle_outline, // Tampilkan ikon tambah
+                      color: Colors.black,
+                    ),
+                    SizedBox(width: 3), // Jarak antara ikon dan teks
+                    Flexible(
+                      child: Text(
+                        'Add New Subject',
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      } else {
+        // Tampilkan kartu subjek seperti biasa dengan indeks posisi + 1
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              selectedIndexSubject = position + 1;
+            });
+          },
+          child: Container(
+            width: 90,
+            margin: const EdgeInsets.symmetric(horizontal: 5),
+            child: Card(
+              color: (selectedIndexSubject == position + 1)
+                  ? const Color.fromARGB(255, 157, 158, 251)
+                  : null,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(
+                  color: (selectedIndexSubject == position + 1)
+                      ? const Color.fromARGB(255, 136, 146, 237)
+                      : Colors.transparent,
+                  width: 4,
+                ),
+              ),
+              elevation: 5,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  Text(
+                    subjectList[position + 1],
+                    style: TextStyle(
+                      color: (selectedIndexSubject == position + 1)
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    },
+  ),
+),
+
                     const Padding(
                       padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
                       child: Row(
@@ -628,74 +623,70 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showEditSubjectDialog(BuildContext context) {
-    String initialValue =
-        selectedSubject.isNotEmpty ? selectedSubject : subjectList[0];
-    String newSubject = selectedSubject;
+void _showEditSubjectDialog(BuildContext context, VoidCallback onSubjectUpdated) {
+  String initialValue = selectedSubject.isNotEmpty ? selectedSubject : subjectList[0];
+  String newSubject = selectedSubject;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Edit Subject'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButton<String>(
-                    value: selectedSubject.isNotEmpty
-                        ? selectedSubject
-                        : subjectList[0],
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedSubject = newValue ?? '';
-                        newSubject = selectedSubject;
-                      });
-                    },
-                    items: subjectList
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                  TextField(
-                    onChanged: (value) {
-                      // Saat pengguna mengetik, perbarui nilai newSubject
-                      newSubject = value;
-                    },
-                    decoration: const InputDecoration(
-                      labelText: 'New Subject Name',
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // Perbarui nama subjek yang dipilih saat tombol "Done" ditekan
-                    if (newSubject.isNotEmpty &&
-                        !subjectList.contains(newSubject)) {
-                      int selectedIndex = subjectList.indexOf(selectedSubject);
-                      if (selectedIndex != -1) {
-                        setState(() {
-                          subjectList[selectedIndex] = newSubject;
-                        });
-                      }
-                    }
-                    Navigator.of(context).pop();
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Edit Subject'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButton<String>(
+                  value: initialValue,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedSubject = newValue ?? initialValue;
+                      newSubject = selectedSubject;
+                    });
                   },
-                  child: const Text('Done'),
+                  items: subjectList.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                TextField(
+                  onChanged: (value) {
+                    newSubject = value;
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'New Subject Name',
+                  ),
                 ),
               ],
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  if (newSubject.isNotEmpty && !subjectList.contains(newSubject)) {
+                    int selectedIndex = subjectList.indexOf(selectedSubject);
+                    if (selectedIndex != -1) {
+                      setState(() {
+                        subjectList[selectedIndex] = newSubject;
+                      });
+                    }
+                    selectedSubject = newSubject;
+                    onSubjectUpdated();  // Panggil callback
+                  }
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Done'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 
   void _addNewSubject(String newSubject) {
     setState(() {
