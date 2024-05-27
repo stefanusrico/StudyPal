@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'chat_screen.dart';
 import 'settings_page.dart';
 
 class GroupPage extends StatefulWidget {
@@ -550,6 +551,65 @@ class _GroupPageState extends State<GroupPage> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
+                  child: Card(
+                    color: const Color.fromARGB(255, 214, 225, 255),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(0, 24, 0, 6),
+                          child: Text(
+                            "Group Stats",
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        // Row pertama
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              buildCustomCard("02:10:47", "Time Total"),
+                              buildCustomCard("00:20:43", "Max Focus"),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        // Row kedua
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              buildCustomCard("12h 20m", "Start Time"),
+                              buildCustomCard("14h 30m", "Finish Time"),
+                            ],
+                          ),
+                        ),
+                        // Tombol Open
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const ChatPage()),
+                            );
+                          },
+                          child: const Text('Open'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

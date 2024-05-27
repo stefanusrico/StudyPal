@@ -1,8 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String? email;
+
+  String? token;
+
+  Map<String, dynamic>? userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData(); // Panggil fungsi untuk mengambil email saat inisialisasi halaman
+  }
+
+  Future<void> _getEmailandToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Set nilai email dari SharedPreferences ke variabel email
+      email = prefs.getString('email');
+      token = prefs.getString('token');
+    });
+  }
+
+  Future<Map<String, dynamic>> getUserProfile(
+      String email, String token) async {
+    final apiUrl = Uri.parse('http://10.0.2.2:4000/profile/$email');
+
+    try {
+      final response = await http.get(
+        apiUrl,
+        headers: {
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Konversi respons menjadi map JSON
+        final Map<String, dynamic> userData = json.decode(response.body);
+        return userData;
+      } else {
+        // Tangani kesalahan jika status kode bukan 200
+        throw Exception('Failed to load user profile');
+      }
+    } catch (error) {
+      // Tangani kesalahan jaringan
+      throw Exception('Network error: $error');
+    }
+  }
+
+  Future<void> fetchData() async {
+    try {
+      // Panggil fungsi untuk mengambil email dan token
+      await _getEmailandToken();
+
+      // Pastikan email dan token tidak null
+      if (email != null && token != null) {
+        // Panggil getUserProfile dengan email dan token
+        Map<String, dynamic> userProfileData =
+            await getUserProfile(email!, token!);
+
+        String birthDate = userProfileData['birth_date'] ?? '';
+        DateTime birthDateTime = DateTime.parse(birthDate);
+        String formattedBirthDate = DateFormat('dd MMM').format(birthDateTime);
+
+        // Tambahkan birth_date yang sudah diformat ke userProfileData
+        userProfileData['birth_date'] = formattedBirthDate;
+
+        String userProfileDataString = jsonEncode(userProfileData);
+
+        debugPrint(userProfileDataString);
+
+        // Tetapkan hasil getUserProfile ke userProfile
+        setState(() {
+          userProfile = userProfileData;
+        });
+      } else {
+        // Tangani jika email atau token null
+        throw Exception('Email or token is null');
+      }
+    } catch (error) {
+      // Tangani kesalahan
+      throw Exception('Error fetching user profile: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -22,7 +116,7 @@ class ProfilePage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(17, 16, 17, 0),
+                padding: const EdgeInsets.fromLTRB(17, 16, 17, 0),
                 child: Column(
                   children: [
                     Row(
@@ -41,13 +135,13 @@ class ProfilePage extends StatelessWidget {
                             ),
                             color: Colors
                                 .white, // Background color of the dropdown
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.menu,
                               color: Colors.black,
                             ),
                             itemBuilder: (BuildContext context) =>
                                 <PopupMenuEntry>[
-                              PopupMenuItem(
+                              const PopupMenuItem(
                                 value: 'menu1',
                                 child: Row(
                                   children: [
@@ -60,7 +154,7 @@ class ProfilePage extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              PopupMenuItem(
+                              const PopupMenuItem(
                                 value: 'menu2',
                                 child: Row(
                                   children: [
@@ -71,8 +165,9 @@ class ProfilePage extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              PopupMenuDivider(height: 1), // Garis pembatas
-                              PopupMenuItem(
+                              const PopupMenuDivider(
+                                  height: 1), // Garis pembatas
+                              const PopupMenuItem(
                                 value: 'menu3',
                                 child: Row(
                                   children: [
@@ -82,7 +177,7 @@ class ProfilePage extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                              PopupMenuItem(
+                              const PopupMenuItem(
                                 value: 'menu4',
                                 child: Row(
                                   children: [
@@ -107,7 +202,7 @@ class ProfilePage extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          SettingsPage(), // Arahkan ke SettingsPage
+                                          const SettingsPage(), // Arahkan ke SettingsPage
                                     ),
                                   );
                                   break;
@@ -119,7 +214,7 @@ class ProfilePage extends StatelessWidget {
                             },
                           ),
                         ),
-                        Text(
+                        const Text(
                           "Profile",
                           style: TextStyle(
                             color: Colors.black,
@@ -139,19 +234,19 @@ class ProfilePage extends StatelessWidget {
                             ),
                             color: Colors
                                 .white, // Background color of the dropdown
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.notifications_outlined,
                               color: Colors.black,
                             ),
                             itemBuilder: (BuildContext context) =>
                                 <PopupMenuEntry>[
-                              PopupMenuItem(
-                                child: Text('Notifications'),
+                              const PopupMenuItem(
                                 value: 'notification1',
+                                child: Text('Notifications'),
                               ),
-                              PopupMenuItem(
-                                child: Text('Challenges'),
+                              const PopupMenuItem(
                                 value: 'notification2',
+                                child: Text('Challenges'),
                               ),
                               // Add more PopupMenuItems as needed
                             ],
@@ -163,7 +258,7 @@ class ProfilePage extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
-                                            NotificationsPage()),
+                                            const NotificationsPage()),
                                   );
                                   break;
                                 case 'notification2':
@@ -191,11 +286,11 @@ class ProfilePage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // Ikon foto profil bulat
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 30, // Ukuran ikon
                           // backgroundImage: AssetImage('assets/profile_picture.jpg'), // Contoh gambar
                         ),
-                        SizedBox(width: 16), // Jarak antara ikon dan teks
+                        const SizedBox(width: 16), // Jarak antara ikon dan teks
                         // Kolom untuk teks nama dan deskripsi
                         Expanded(
                           child: Column(
@@ -203,15 +298,16 @@ class ProfilePage extends StatelessWidget {
                                 CrossAxisAlignment.start, // Teks rata kiri
                             children: [
                               Text(
-                                'John Doe', // Nama profil
-                                style: TextStyle(
+                                userProfile?['fullName'] ?? '', // Nama profil
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
-                                'john@example.com', // Deskripsi pekerjaan
-                                style: TextStyle(
+                                userProfile?['email'] ??
+                                    '', // Deskripsi pekerjaan
+                                style: const TextStyle(
                                   color: Colors.grey, // Warna abu-abu
                                 ),
                               ),
@@ -232,7 +328,7 @@ class ProfilePage extends StatelessWidget {
                               horizontal: 35,
                               vertical: 0,
                             ), // Padding untuk tombol
-                            backgroundColor: Color.fromARGB(
+                            backgroundColor: const Color.fromARGB(
                                 255, 166, 172, 254), // Warna latar belakang
                             foregroundColor: Colors.white, // Warna teks
                           ),
@@ -245,7 +341,7 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                         height: 32), // Jarak antara baris pertama dan kedua
 
                     // Baris kedua: Tiga kartu saling bersebelahan
@@ -254,32 +350,34 @@ class ProfilePage extends StatelessWidget {
                           .spaceEvenly, // Sebar kartu secara merata
                       children: [
                         Expanded(
-                          child: Container(
+                          child: SizedBox(
                             height: 70, // Atur tinggi kartu
                             child: _buildStatCard(
                                 '2024', 'Year joined'), // Kartu pertama
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Expanded(
-                          child: Container(
+                          child: SizedBox(
                             height: 70, // Atur tinggi kartu
                             child: _buildStatCard(
                                 '48h 27m', 'Times used'), // Kartu kedua
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Expanded(
-                          child: Container(
+                          child: SizedBox(
                             height: 70, // Atur tinggi kartu
                             child: _buildStatCard(
-                                '24 Jan', 'Birthday'), // Kartu ketiga
+                                userProfile?['birth_date'] ?? '',
+                                'Birthday'), // Kartu ketiga
                           ),
                         ),
                       ],
                     ),
 
-                    SizedBox(height: 32), // Jarak antara baris kedua dan ketiga
+                    const SizedBox(
+                        height: 32), // Jarak antara baris kedua dan ketiga
 
                     // Baris ketiga: Kartu berisi pengaturan profil
                     Card(
@@ -290,30 +388,32 @@ class ProfilePage extends StatelessWidget {
                       child: Column(
                         children: [
                           ListTile(
-                            leading: Icon(
+                            leading: const Icon(
                                 Icons.account_circle), // Ikon pengaturan akun
-                            title: Text('Account Settings'), // Teks utama
-                            trailing:
-                                Icon(Icons.arrow_forward_ios), // Tombol panah
+                            title: const Text('Account Settings'), // Teks utama
+                            trailing: const Icon(
+                                Icons.arrow_forward_ios), // Tombol panah
                             onTap: () {
                               // Aksi saat item ditekan
                             },
                           ),
-                          Divider(), // Garis pemisah
+                          const Divider(), // Garis pemisah
                           ListTile(
-                            leading: Icon(Icons.security), // Ikon keamanan
-                            title: Text('Security'), // Teks keamanan
-                            trailing: Icon(Icons.arrow_forward_ios),
+                            leading:
+                                const Icon(Icons.security), // Ikon keamanan
+                            title: const Text('Security'), // Teks keamanan
+                            trailing: const Icon(Icons.arrow_forward_ios),
                             onTap: () {
                               // Aksi saat item keamanan ditekan
                             },
                           ),
-                          Divider(),
+                          const Divider(),
                           ListTile(
-                            leading:
-                                Icon(Icons.notifications), // Ikon notifikasi
-                            title: Text('Notifications'), // Teks notifikasi
-                            trailing: Icon(Icons.arrow_forward_ios),
+                            leading: const Icon(
+                                Icons.notifications), // Ikon notifikasi
+                            title:
+                                const Text('Notifications'), // Teks notifikasi
+                            trailing: const Icon(Icons.arrow_forward_ios),
                             onTap: () {
                               // Aksi saat item notifikasi ditekan
                             },
@@ -345,15 +445,15 @@ class ProfilePage extends StatelessWidget {
           children: [
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
                 color: Color.fromARGB(255, 180, 152, 255), // Warna biru
               ),
             ),
-            SizedBox(height: 2), // Jarak antara teks atas dan bawah
+            const SizedBox(height: 2), // Jarak antara teks atas dan bawah
             Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: Colors.grey, // Warna abu-abu
               ),
