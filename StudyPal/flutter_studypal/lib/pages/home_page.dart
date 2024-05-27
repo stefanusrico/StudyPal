@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -30,10 +32,26 @@ List<String> subjectList = [
 ];
 
 class HomePage extends StatefulWidget {
-  final StopWatchTimer
-      stopWatchTimer; // Tambahkan parameter untuk referensi stopWatchTimer
+  final StopWatchTimer stopWatchTimer;
+  final ValueNotifier<int> timerValueNotifier;
+  final StreamController<int> timerStreamController;
+  final bool isTimerRunning;
+  final String selectedSubject;
+  final String selectedMethod;
+  final Function(String) updateSelectedSubject;
+  final Function(String) updateSelectedMethod;
 
-  const HomePage({super.key, required this.stopWatchTimer});
+  const HomePage({
+    super.key,
+    required this.stopWatchTimer,
+    required this.timerValueNotifier,
+    required this.timerStreamController,
+    required this.isTimerRunning,
+    required this.selectedSubject,
+    required this.selectedMethod,
+    required this.updateSelectedSubject,
+    required this.updateSelectedMethod,
+  });
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -44,6 +62,7 @@ class _HomePageState extends State<HomePage> {
   int selectedIndexSubject = -1;
   List<bool> switchValues = [false, false, false];
   String selectedSubject = '';
+  String selectedMethod = '';
   String? email;
   String? token;
   Map<String, dynamic>? userProfile;
@@ -51,10 +70,32 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    fetchData(); // Panggil fungsi untuk mengambil email saat inisialisasi halaman
+    fetchData();
+    selectedSubject = widget.selectedSubject;
+    selectedMethod = widget.selectedMethod;
   }
 
-  Future<void> _getEmailandToken() async {
+  String getSelectedSubject() {
+    return selectedSubject;
+  }
+
+  String getSelectedMethod() {
+    return selectedMethod;
+  }
+
+  void updateSelectedSubject(String subject) {
+    setState(() {
+      selectedSubject = subject;
+    });
+  }
+
+  void updateSelectedMethod(String method) {
+    setState(() {
+      selectedMethod = method;
+    });
+  }
+
+  Future<void> getEmailandToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       // Set nilai email dari SharedPreferences ke variabel email
@@ -93,7 +134,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchData() async {
     try {
       // Panggil fungsi untuk mengambil email dan token
-      await _getEmailandToken();
+      await getEmailandToken();
 
       // Pastikan email dan token tidak null
       if (email != null && token != null) {
@@ -114,9 +155,11 @@ class _HomePageState extends State<HomePage> {
       throw Exception('Error fetching user profile: $error');
     }
   }
-void _updateSubject() {
+
+  void updateSubject() {
     setState(() {});
   }
+
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
@@ -307,12 +350,14 @@ void _updateSubject() {
                       ),
                     ),
                     StreamBuilder<int>(
-                      stream: widget.stopWatchTimer.rawTime,
-                      initialData: widget.stopWatchTimer.rawTime.value,
+                      stream: widget.timerStreamController.stream,
+                      initialData: 0,
                       builder: (context, snapshot) {
                         final value = snapshot.data ?? 0;
-                        final displayTime = StopWatchTimer.getDisplayTime(value,
-                            hours: true); // Atur format waktu
+                        final displayTime = StopWatchTimer.getDisplayTime(
+                          value,
+                          hours: true,
+                        );
                         return Padding(
                           padding: const EdgeInsets.fromLTRB(0, 24, 0, 20),
                           child: Align(
@@ -363,7 +408,7 @@ void _updateSubject() {
                           ),
                           GestureDetector(
                             onTap: () {
-                              _showEditSubjectDialog(context, _updateSubject);
+                              showEditSubjectDialog(context, updateSubject);
                             },
                             child: const Text(
                               'Edit Subject',
@@ -377,100 +422,113 @@ void _updateSubject() {
                       ),
                     ),
                     Container(
-  height: 40,
-  padding: const EdgeInsets.only(left: 10),
-  child: ListView.builder(
-    scrollDirection: Axis.horizontal,
-    itemCount: subjectList.length, // Sesuaikan itemCount ke panjang asli subjectList
-    itemBuilder: (BuildContext context, int position) {
-      // Lewati item pertama dengan mengakses indeks dari posisi + 1
-      if (position == subjectList.length - 1) {
-        return GestureDetector(
-          onTap: () {
-            _showAddSubjectDialog(context);
-          },
-          child: Container(
-            width: 120,
-            margin: const EdgeInsets.symmetric(horizontal: 5),
-            child: Card(
-              color: Colors.grey[100], // Warna latar belakang untuk kartu tambahan
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: const BorderSide(
-                  color: Colors.transparent,
-                ),
-              ),
-              elevation: 5,
-              child: const Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add_circle_outline, // Tampilkan ikon tambah
-                      color: Colors.black,
-                    ),
-                    SizedBox(width: 3), // Jarak antara ikon dan teks
-                    Flexible(
-                      child: Text(
-                        'Add New Subject',
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                      height: 40,
+                      padding: const EdgeInsets.only(left: 10),
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: subjectList
+                            .length, // Sesuaikan itemCount ke panjang asli subjectList
+                        itemBuilder: (BuildContext context, int position) {
+                          // Lewati item pertama dengan mengakses indeks dari posisi + 1
+                          if (position == subjectList.length - 1) {
+                            return GestureDetector(
+                              onTap: () {
+                                showAddSubjectDialog(context);
+                              },
+                              child: Container(
+                                width: 120,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Card(
+                                  color: Colors.grey[
+                                      100], // Warna latar belakang untuk kartu tambahan
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: const BorderSide(
+                                      color: Colors.transparent,
+                                    ),
+                                  ),
+                                  elevation: 5,
+                                  child: const Center(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons
+                                              .add_circle_outline, // Tampilkan ikon tambah
+                                          color: Colors.black,
+                                        ),
+                                        SizedBox(
+                                            width:
+                                                3), // Jarak antara ikon dan teks
+                                        Flexible(
+                                          child: Text(
+                                            'Add New Subject',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          } else {
+                            // Tampilkan kartu subjek seperti biasa dengan indeks posisi + 1
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedIndexSubject = position + 1;
+                                  widget.updateSelectedSubject(
+                                      subjectList[position + 1]);
+                                });
+                              },
+                              child: Container(
+                                width: 90,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Card(
+                                  color: (selectedIndexSubject == position + 1)
+                                      ? const Color.fromARGB(255, 157, 158, 251)
+                                      : null,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    side: BorderSide(
+                                      color:
+                                          (selectedIndexSubject == position + 1)
+                                              ? const Color.fromARGB(
+                                                  255, 136, 146, 237)
+                                              : Colors.transparent,
+                                      width: 4,
+                                    ),
+                                  ),
+                                  elevation: 5,
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: <Widget>[
+                                      Text(
+                                        subjectList[position + 1],
+                                        style: TextStyle(
+                                          color: (selectedIndexSubject ==
+                                                  position + 1)
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        },
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      } else {
-        // Tampilkan kartu subjek seperti biasa dengan indeks posisi + 1
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              selectedIndexSubject = position + 1;
-            });
-          },
-          child: Container(
-            width: 90,
-            margin: const EdgeInsets.symmetric(horizontal: 5),
-            child: Card(
-              color: (selectedIndexSubject == position + 1)
-                  ? const Color.fromARGB(255, 157, 158, 251)
-                  : null,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                side: BorderSide(
-                  color: (selectedIndexSubject == position + 1)
-                      ? const Color.fromARGB(255, 136, 146, 237)
-                      : Colors.transparent,
-                  width: 4,
-                ),
-              ),
-              elevation: 5,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  Text(
-                    subjectList[position + 1],
-                    style: TextStyle(
-                      color: (selectedIndexSubject == position + 1)
-                          ? Colors.white
-                          : Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    },
-  ),
-),
-
                     const Padding(
                       padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
                       child: Row(
@@ -499,6 +557,8 @@ void _updateSubject() {
                             onTap: () {
                               setState(() {
                                 selectedIndex = position;
+                                widget.updateSelectedMethod(
+                                    iconList[position].titleIcon);
                               });
                             },
                             child: Container(
@@ -623,78 +683,81 @@ void _updateSubject() {
     );
   }
 
-void _showEditSubjectDialog(BuildContext context, VoidCallback onSubjectUpdated) {
-  String initialValue = selectedSubject.isNotEmpty ? selectedSubject : subjectList[0];
-  String newSubject = selectedSubject;
+  void showEditSubjectDialog(
+      BuildContext context, VoidCallback onSubjectUpdated) {
+    String initialValue =
+        selectedSubject.isNotEmpty ? selectedSubject : subjectList[0];
+    String newSubject = selectedSubject;
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('Edit Subject'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButton<String>(
-                  value: initialValue,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedSubject = newValue ?? initialValue;
-                      newSubject = selectedSubject;
-                    });
-                  },
-                  items: subjectList.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-                TextField(
-                  onChanged: (value) {
-                    newSubject = value;
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'New Subject Name',
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Subject'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButton<String>(
+                    value: initialValue,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedSubject = newValue ?? initialValue;
+                        newSubject = selectedSubject;
+                      });
+                    },
+                    items: subjectList
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
                   ),
+                  TextField(
+                    onChanged: (value) {
+                      newSubject = value;
+                    },
+                    decoration: const InputDecoration(
+                      labelText: 'New Subject Name',
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    if (newSubject.isNotEmpty &&
+                        !subjectList.contains(newSubject)) {
+                      int selectedIndex = subjectList.indexOf(selectedSubject);
+                      if (selectedIndex != -1) {
+                        setState(() {
+                          subjectList[selectedIndex] = newSubject;
+                        });
+                      }
+                      selectedSubject = newSubject;
+                      onSubjectUpdated(); // Panggil callback
+                    }
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Done'),
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  if (newSubject.isNotEmpty && !subjectList.contains(newSubject)) {
-                    int selectedIndex = subjectList.indexOf(selectedSubject);
-                    if (selectedIndex != -1) {
-                      setState(() {
-                        subjectList[selectedIndex] = newSubject;
-                      });
-                    }
-                    selectedSubject = newSubject;
-                    onSubjectUpdated();  // Panggil callback
-                  }
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Done'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
-}
+            );
+          },
+        );
+      },
+    );
+  }
 
-
-  void _addNewSubject(String newSubject) {
+  void addNewSubject(String newSubject) {
     setState(() {
       subjectList.add(newSubject);
     });
   }
 
-  void _showAddSubjectDialog(BuildContext context) {
+  void showAddSubjectDialog(BuildContext context) {
     String newSubject = ''; // Variabel untuk menyimpan nama subjek baru
 
     showDialog(
@@ -719,7 +782,7 @@ void _showEditSubjectDialog(BuildContext context, VoidCallback onSubjectUpdated)
                 TextButton(
                   onPressed: () {
                     // Panggil fungsi untuk menambahkan subjek baru
-                    _addNewSubject(newSubject);
+                    addNewSubject(newSubject);
                     Navigator.of(context)
                         .pop(); // Tutup dialog setelah menambahkan subjek baru
                   },
