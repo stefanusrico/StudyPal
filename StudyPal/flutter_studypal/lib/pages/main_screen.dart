@@ -2,15 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:flutter_studypal/components/nav_model.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'home_page.dart';
 import 'insight_page.dart';
 import 'group_page.dart';
 import 'profile_page.dart';
 
 class MainScreen extends StatefulWidget {
+  static final GlobalKey<_MainScreenState> mainScreenKey =
+      GlobalKey<_MainScreenState>();
   const MainScreen({super.key});
 
   @override
@@ -18,22 +23,31 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final homeNavKey = GlobalKey<NavigatorState>();
-  final insightNavKey = GlobalKey<NavigatorState>();
-  final groupNavKey = GlobalKey<NavigatorState>();
-  final profileNavKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> homeNavKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> insightNavKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> groupNavKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> profileNavKey = GlobalKey<NavigatorState>();
+
   final StreamController<int> _timerStreamController =
       StreamController<int>.broadcast();
   final ValueNotifier<int> _timerValueNotifier = ValueNotifier<int>(0);
+  final ValueNotifier<int> _accumulatedTimeNotifier = ValueNotifier<int>(0);
+
   int selectedTab = 0;
   List<NavModel> items = [];
+  final List<Map<String, dynamic>> _latestStudyList = [];
 
   bool timerStarted = false;
   bool timerRunning = false;
   bool isTimerRunning = false;
+  String? email;
+  String? token;
   int stoppedTimerValue = 0;
   String selectedSubject = '';
   String selectedMethod = '';
+  String latestSubject = '';
+  String latestTime = '';
+  int accumulatedTime = 0;
 
   // StopWatchTimer instance
   final StopWatchTimer _stopWatchTimer = StopWatchTimer(
@@ -42,6 +56,66 @@ class _MainScreenState extends State<MainScreen> {
       print('Timer Value: $value');
     },
   );
+
+  void navigateToProfilePage() {
+    print('Navigating to ProfilePage');
+    setState(() {
+      selectedTab = 3;
+      print('Selected tab updated to $selectedTab');
+      items[selectedTab]
+          .navKey
+          .currentState
+          ?.popUntil((route) => route.isFirst);
+      print('Navigation completed');
+    });
+  }
+
+  Future<void> _getEmailandToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Set nilai email dari SharedPreferences ke variabel email
+      email = prefs.getString('email');
+      token = prefs.getString('token');
+    });
+  }
+
+  Future<void> sendAccumulatedTime(int accumulatedTime) async {
+    final url =
+        Uri.parse('http://10.0.2.2:4000/users/$email/send-accumulated-time');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          'accumulatedTime': accumulatedTime,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Accumulated time sent successfully');
+      } else {
+        print(
+            'Failed to send accumulated time. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error sending accumulated time: $e');
+    }
+  }
+
+  Future<void> _sendAccumulatedTime() async {
+    await _getEmailandToken();
+    sendAccumulatedTime(accumulatedTime);
+  }
+
+  void _handleLatestStudyAdded(Map<String, dynamic> data) {
+    setState(() {
+      _latestStudyList.add(data);
+    });
+  }
 
   @override
   void initState() {
@@ -53,10 +127,14 @@ class _MainScreenState extends State<MainScreen> {
           timerValueNotifier: _timerValueNotifier,
           timerStreamController: _timerStreamController,
           isTimerRunning: isTimerRunning,
-          selectedSubject: '', // Provide an initial value for 'selectedSubject'
-          selectedMethod: '', // Provide an initial value for 'selectedMethod'
+          selectedSubject: selectedSubject,
+          selectedMethod: selectedMethod,
           updateSelectedSubject: updateSelectedSubject,
           updateSelectedMethod: updateSelectedMethod,
+          latestStudyList: _latestStudyList,
+          onLatestStudyAdded: _handleLatestStudyAdded,
+          accumulatedTimeNotifier:
+              _accumulatedTimeNotifier, // Tambahkan parameter ini
         ),
         navKey: homeNavKey,
       ),
@@ -98,7 +176,6 @@ class _MainScreenState extends State<MainScreen> {
   List<SpeedDialChild> _getSpeedDialChildren() {
     if (timerStarted && timerRunning) {
       return [
-        // ...
         SpeedDialChild(
           child: const Icon(Icons.pause,
               color: Color.fromARGB(255, 204, 157, 255)),
@@ -110,10 +187,21 @@ class _MainScreenState extends State<MainScreen> {
             setState(() {
               timerRunning = false;
               isTimerRunning = false;
+              accumulatedTime += _stopWatchTimer
+                  .rawTime.value; // Tambahkan waktu saat ini ke accumulatedTime
+              _accumulatedTimeNotifier.value = accumulatedTime;
+              debugPrint('Adding data to latestStudyList');
+              debugPrint('Subject: $selectedSubject');
             });
+            _sendAccumulatedTime();
+            // (items[selectedTab].page as HomePage).addToLatestStudyList(
+            //   {
+            //     'subject': selectedSubject,
+            //     'time': 'Paused ${DateTime.now().toString().substring(0, 16)}',
+            //   },
+            // );
           },
         ),
-        // ...
       ];
     } else if (timerStarted && !timerRunning) {
       return [
@@ -176,6 +264,12 @@ class _MainScreenState extends State<MainScreen> {
                 timerStarted = true;
                 timerRunning = true;
                 isTimerRunning = true;
+                debugPrint('Clearing latestStudyList');
+                for (var data in _latestStudyList) {
+                  debugPrint(
+                      'Subject: ${data['subject']}, Time: ${data['time']}');
+                }
+                // latestStudyList.clear();
               });
             },
           ),
@@ -186,6 +280,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('Current selectedTab: $selectedTab');
     return WillPopScope(
       onWillPop: () {
         if (items[selectedTab].navKey.currentState?.canPop() ?? false) {
@@ -196,6 +291,7 @@ class _MainScreenState extends State<MainScreen> {
         }
       },
       child: Scaffold(
+        key: MainScreen.mainScreenKey,
         body: IndexedStack(
           index: selectedTab,
           children: items.map((page) {

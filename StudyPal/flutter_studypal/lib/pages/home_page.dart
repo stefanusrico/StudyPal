@@ -1,11 +1,16 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'calendar_page.dart';
+import 'main_screen.dart';
+import 'home_page.dart';
+import 'insight_page.dart';
+import 'group_page.dart';
+import 'profile_page.dart';
 import 'settings_page.dart';
+import 'profile_page.dart';
 import 'notifications_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,18 +45,23 @@ class HomePage extends StatefulWidget {
   final String selectedMethod;
   final Function(String) updateSelectedSubject;
   final Function(String) updateSelectedMethod;
+  final List<Map<String, dynamic>> latestStudyList;
+  final Function(Map<String, dynamic>) onLatestStudyAdded;
+  final ValueNotifier<int> accumulatedTimeNotifier;
 
-  const HomePage({
-    super.key,
-    required this.stopWatchTimer,
-    required this.timerValueNotifier,
-    required this.timerStreamController,
-    required this.isTimerRunning,
-    required this.selectedSubject,
-    required this.selectedMethod,
-    required this.updateSelectedSubject,
-    required this.updateSelectedMethod,
-  });
+  const HomePage(
+      {super.key,
+      required this.stopWatchTimer,
+      required this.timerValueNotifier,
+      required this.timerStreamController,
+      required this.isTimerRunning,
+      required this.selectedSubject,
+      required this.selectedMethod,
+      required this.updateSelectedSubject,
+      required this.updateSelectedMethod,
+      required this.latestStudyList,
+      required this.onLatestStudyAdded,
+      required this.accumulatedTimeNotifier});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -63,9 +73,13 @@ class _HomePageState extends State<HomePage> {
   List<bool> switchValues = [false, false, false];
   String selectedSubject = '';
   String selectedMethod = '';
+  String latestSubject = '';
+  String latestTime = '';
   String? email;
   String? token;
   Map<String, dynamic>? userProfile;
+  final List<Map<String, dynamic>> _latestStudyList = [];
+  int accumulatedTime = 0;
 
   @override
   void initState() {
@@ -95,7 +109,14 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> getEmailandToken() async {
+  void addToLatestStudyList(Map<String, dynamic> data) {
+    setState(() {
+      _latestStudyList.add(data);
+      widget.onLatestStudyAdded(data);
+    });
+  }
+
+  Future<void> _getEmailandToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       // Set nilai email dari SharedPreferences ke variabel email
@@ -134,7 +155,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchData() async {
     try {
       // Panggil fungsi untuk mengambil email dan token
-      await getEmailandToken();
+      await _getEmailandToken();
 
       // Pastikan email dan token tidak null
       if (email != null && token != null) {
@@ -215,14 +236,23 @@ class _HomePageState extends State<HomePage> {
                                       value: 'menu1',
                                       child: Row(
                                         children: [
-                                          const Icon(Icons
-                                              .person), // Tambahkan ikon di sebelah kiri teks
-                                          const SizedBox(
-                                              width:
-                                                  10), // Beri jarak antara ikon dan teks
+                                          const Icon(Icons.person),
+                                          const SizedBox(width: 10),
                                           Text(userProfile?['fullName'] ?? ''),
                                         ],
                                       ),
+                                      onTap: () {
+                                        debugPrint(
+                                            '${userProfile?['fullName'] ?? ''}');
+                                        print('Menu1 tapped');
+                                        print(
+                                            'Calling navigateToProfilePage()');
+                                        final mainScreenState = MainScreen
+                                            .mainScreenKey.currentState;
+                                        mainScreenState
+                                            ?.navigateToProfilePage();
+                                        print(mainScreenState);
+                                      },
                                     ),
                                     PopupMenuItem(
                                       value: 'menu2',
@@ -374,6 +404,22 @@ class _HomePageState extends State<HomePage> {
                         );
                       },
                     ),
+                    // ValueListenableBuilder<int>(
+                    //   valueListenable: widget.accumulatedTimeNotifier,
+                    //   builder: (context, accumulatedTime, child) {
+                    //     return Padding(
+                    //       padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+                    //       child: Text(
+                    //         'Accumulated Time: ${StopWatchTimer.getDisplayTime(accumulatedTime)}',
+                    //         style: const TextStyle(
+                    //           fontSize: 18,
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Colors.white,
+                    //         ),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                     const Padding(
                       padding: EdgeInsets.fromLTRB(0, 0, 0,
                           55), // Memberikan padding 10.0 di atas dan 20.0 di bawah
@@ -485,6 +531,8 @@ class _HomePageState extends State<HomePage> {
                                   selectedIndexSubject = position + 1;
                                   widget.updateSelectedSubject(
                                       subjectList[position + 1]);
+                                  debugPrint(
+                                      'Selected Subject: ${subjectList[position + 1]}');
                                 });
                               },
                               child: Container(
@@ -559,6 +607,8 @@ class _HomePageState extends State<HomePage> {
                                 selectedIndex = position;
                                 widget.updateSelectedMethod(
                                     iconList[position].titleIcon);
+                                debugPrint(
+                                    'Selected Method: ${iconList[position].titleIcon}');
                               });
                             },
                             child: Container(
@@ -980,6 +1030,76 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ]),
                 ),
+                if (_latestStudyList.isNotEmpty)
+                  Column(
+                    children: _latestStudyList.map((data) {
+                      return Container(
+                        width: MediaQuery.of(context).size.width * 0.85,
+                        height: 75,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircleAvatar(
+                                radius: 25,
+                                backgroundColor: Colors.grey,
+                                child: Icon(
+                                  Icons.book,
+                                  size: 32,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      data['subject'],
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      data['time'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Icon(
+                                Icons.more_vert,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  )
               ],
             ),
           ),
