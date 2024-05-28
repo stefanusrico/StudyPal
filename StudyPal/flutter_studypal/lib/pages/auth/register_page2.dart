@@ -216,6 +216,9 @@ class _RegisterPageState extends State<RegisterPage2> {
       String password, String gender, DateTime birthDate) async {
     Uri apiUrl = Uri.parse('http://10.0.2.2:4000/register');
 
+    // Konversi tanggal menjadi string tanpa waktu
+    String birthDateString = birthDate.toIso8601String().substring(0, 10);
+
     // Konversi requestData menjadi JSON
     String jsonData = json.encode({
       'first_name': firstName,
@@ -223,9 +226,8 @@ class _RegisterPageState extends State<RegisterPage2> {
       'email': email,
       'password': password,
       'gender': gender,
-      'birth_date': birthDate.toString(),
+      'birth_date': birthDateString,
     });
-
 
     try {
       final response = await http.post(

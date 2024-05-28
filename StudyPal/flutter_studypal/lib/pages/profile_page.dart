@@ -1,330 +1,400 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String? email;
+
+  String? token;
+
+  Map<String, dynamic>? userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData(); // Panggil fungsi untuk mengambil email saat inisialisasi halaman
+  }
+
+  Future<void> _getEmailandToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Set nilai email dari SharedPreferences ke variabel email
+      email = prefs.getString('email');
+      token = prefs.getString('token');
+    });
+  }
+
+  Future<Map<String, dynamic>> getUserProfile(
+      String email, String token) async {
+    final apiUrl = Uri.parse('http://10.0.2.2:4000/profile/$email');
+
+    try {
+      final response = await http.get(
+        apiUrl,
+        headers: {
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Konversi respons menjadi map JSON
+        final Map<String, dynamic> userData = json.decode(response.body);
+        return userData;
+      } else {
+        // Tangani kesalahan jika status kode bukan 200
+        throw Exception('Failed to load user profile');
+      }
+    } catch (error) {
+      // Tangani kesalahan jaringan
+      throw Exception('Network error: $error');
+    }
+  }
+
+  Future<void> fetchData() async {
+    try {
+      // Panggil fungsi untuk mengambil email dan token
+      await _getEmailandToken();
+
+      // Pastikan email dan token tidak null
+      if (email != null && token != null) {
+        // Panggil getUserProfile dengan email dan token
+        Map<String, dynamic> userProfileData =
+            await getUserProfile(email!, token!);
+
+        String birthDate = userProfileData['birth_date'] ?? '';
+        DateTime birthDateTime = DateTime.parse(birthDate);
+        String formattedBirthDate = DateFormat('dd MMM').format(birthDateTime);
+
+        // Tambahkan birth_date yang sudah diformat ke userProfileData
+        userProfileData['birth_date'] = formattedBirthDate;
+
+        String userProfileDataString = jsonEncode(userProfileData);
+
+        debugPrint(userProfileDataString);
+
+        // Tetapkan hasil getUserProfile ke userProfile
+        setState(() {
+          userProfile = userProfileData;
+        });
+      } else {
+        // Tangani jika email atau token null
+        throw Exception('Email or token is null');
+      }
+    } catch (error) {
+      // Tangani kesalahan
+      throw Exception('Error fetching user profile: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Container(
-          // decoration: BoxDecoration(
-          //   gradient: LinearGradient(
-          //     begin: Alignment.topLeft,
-          //     end: Alignment.bottomRight,
-          //     colors: [
-          //       Color.fromARGB(255, 174, 196, 250), // Warna awal
-          //       Color.fromARGB(255, 115, 155, 255), // Warna akhir
-          //     ],
-          //   ),
-          // ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(17, 16, 17, 0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 45,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: PopupMenuButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            color: Colors
-                                .white, // Background color of the dropdown
-                            icon: Icon(
-                              Icons.menu,
-                              color: Colors.black,
-                            ),
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry>[
-                              PopupMenuItem(
-                                value: 'menu1',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons
-                                        .person), // Tambahkan ikon di sebelah kiri teks
-                                    SizedBox(
-                                        width:
-                                            10), // Beri jarak antara ikon dan teks
-                                    Text('John Doe'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'menu2',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                        Icons.logout_rounded), // Tambahkan ikon
-                                    SizedBox(width: 10),
-                                    Text('Sign Out'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuDivider(height: 1), // Garis pembatas
-                              PopupMenuItem(
-                                value: 'menu3',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.settings), // Ikon tambahan
-                                    SizedBox(width: 10),
-                                    Text('Settings'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'menu4',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.help), // Ikon tambahan
-                                    SizedBox(width: 10),
-                                    Text('Help'),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            onSelected: (value) {
-                              // Handle menu item selection here
-                              switch (value) {
-                                case 'menu1':
-                                  // Tambahkan logika menu 1
-                                  break;
-                                case 'menu2':
-                                  // Tambahkan logika menu 2
-                                  break;
-                                case 'menu3':
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          SettingsPage(), // Arahkan ke SettingsPage
-                                    ),
-                                  );
-                                  break;
-                                case 'menu4':
-                                  // Tambahkan logika menu 4
-                                  break;
-                                // Add cases for more menu items as needed
-                              }
-                            },
-                          ),
-                        ),
-                        Text(
-                          "Profile",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          width: 45,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: PopupMenuButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            color: Colors
-                                .white, // Background color of the dropdown
-                            icon: Icon(
-                              Icons.notifications_outlined,
-                              color: Colors.black,
-                            ),
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry>[
-                              PopupMenuItem(
-                                child: Text('Notifications'),
-                                value: 'notification1',
-                              ),
-                              PopupMenuItem(
-                                child: Text('Challenges'),
-                                value: 'notification2',
-                              ),
-                              // Add more PopupMenuItems as needed
-                            ],
-                            onSelected: (value) {
-                              // Handle notification selection here
-                              switch (value) {
-                                case 'notification1':
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            NotificationsPage()),
-                                  );
-                                  break;
-                                case 'notification2':
-                                  // Navigator.push(
-                                  // context,
-                                  // MaterialPageRoute(builder: (context) => NotificationPage2()),
-                                  // );
-                                  break;
-                                // Add cases for more notifications as needed
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    // Baris pertama: Profil dengan ikon, nama, dan tombol edit
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Ikon foto profil bulat
-                        CircleAvatar(
-                          radius: 30, // Ukuran ikon
-                          // backgroundImage: AssetImage('assets/profile_picture.jpg'), // Contoh gambar
-                        ),
-                        SizedBox(width: 16), // Jarak antara ikon dan teks
-                        // Kolom untuk teks nama dan deskripsi
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start, // Teks rata kiri
-                            children: [
-                              Text(
-                                'John Doe', // Nama profil
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'john@example.com', // Deskripsi pekerjaan
-                                style: TextStyle(
-                                  color: Colors.grey, // Warna abu-abu
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Tombol Edit dengan border circle
-                        ElevatedButton(
-                          onPressed: () {
-                            // Aksi saat tombol Edit ditekan
-                          },
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(20), // Sudut melengkung
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 35,
-                              vertical: 0,
-                            ), // Padding untuk tombol
-                            backgroundColor: Color.fromARGB(
-                                255, 166, 172, 254), // Warna latar belakang
-                            foregroundColor: Colors.white, // Warna teks
-                          ),
-                          child: const Text(
-                            'Edit',
-                            style: TextStyle(
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                        height: 32), // Jarak antara baris pertama dan kedua
-
-                    // Baris kedua: Tiga kartu saling bersebelahan
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment
-                          .spaceEvenly, // Sebar kartu secara merata
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 70, // Atur tinggi kartu
-                            child: _buildStatCard(
-                                '2024', 'Year joined'), // Kartu pertama
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Container(
-                            height: 70, // Atur tinggi kartu
-                            child: _buildStatCard(
-                                '48h 27m', 'Times used'), // Kartu kedua
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Container(
-                            height: 70, // Atur tinggi kartu
-                            child: _buildStatCard(
-                                '24 Jan', 'Birthday'), // Kartu ketiga
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    SizedBox(height: 32), // Jarak antara baris kedua dan ketiga
-
-                    // Baris ketiga: Kartu berisi pengaturan profil
-                    Card(
-                      elevation: 2, // Bayangan di seluruh tepi
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12), // Ujung bulat
-                      ),
-                      child: Column(
+        body: SingleChildScrollView(
+          child: Container(
+            // decoration: BoxDecoration(
+            //   gradient: LinearGradient(
+            //     begin: Alignment.topLeft,
+            //     end: Alignment.bottomRight,
+            //     colors: [
+            //       Color.fromARGB(255, 174, 196, 250), // Warna awal
+            //       Color.fromARGB(255, 115, 155, 255), // Warna akhir
+            //     ],
+            //   ),
+            // ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(17, 16, 17, 0),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ListTile(
-                            leading: Icon(
-                                Icons.account_circle), // Ikon pengaturan akun
-                            title: Text('Account Settings'), // Teks utama
-                            trailing:
-                                Icon(Icons.arrow_forward_ios), // Tombol panah
-                            onTap: () {
-                              // Aksi saat item ditekan
-                            },
+                          Container(
+                            width: 45,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: PopupMenuButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              color: Colors
+                                  .white, // Background color of the dropdown
+                              icon: const Icon(
+                                Icons.menu,
+                                color: Colors.black,
+                              ),
+                              itemBuilder: (BuildContext context) =>
+                                  <PopupMenuEntry>[
+                                const PopupMenuItem(
+                                  value: 'menu1',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons
+                                          .person), // Tambahkan ikon di sebelah kiri teks
+                                      SizedBox(
+                                          width:
+                                              10), // Beri jarak antara ikon dan teks
+                                      Text('John Doe'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'menu2',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons
+                                          .logout_rounded), // Tambahkan ikon
+                                      SizedBox(width: 10),
+                                      Text('Sign Out'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(
+                                    height: 1), // Garis pembatas
+                                const PopupMenuItem(
+                                  value: 'menu3',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.settings), // Ikon tambahan
+                                      SizedBox(width: 10),
+                                      Text('Settings'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'menu4',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.help), // Ikon tambahan
+                                      SizedBox(width: 10),
+                                      Text('Help'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              onSelected: (value) {
+                                // Handle menu item selection here
+                                switch (value) {
+                                  case 'menu1':
+                                    // Tambahkan logika menu 1
+                                    break;
+                                  case 'menu2':
+                                    // Tambahkan logika menu 2
+                                    break;
+                                  case 'menu3':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SettingsPage(), // Arahkan ke SettingsPage
+                                      ),
+                                    );
+                                    break;
+                                  case 'menu4':
+                                    // Tambahkan logika menu 4
+                                    break;
+                                  // Add cases for more menu items as needed
+                                }
+                              },
+                            ),
                           ),
-                          Divider(), // Garis pemisah
-                          ListTile(
-                            leading: Icon(Icons.security), // Ikon keamanan
-                            title: Text('Security'), // Teks keamanan
-                            trailing: Icon(Icons.arrow_forward_ios),
-                            onTap: () {
-                              // Aksi saat item keamanan ditekan
-                            },
+                          const Text(
+                            "Profile",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          Divider(),
-                          ListTile(
-                            leading:
-                                Icon(Icons.notifications), // Ikon notifikasi
-                            title: Text('Notifications'), // Teks notifikasi
-                            trailing: Icon(Icons.arrow_forward_ios),
-                            onTap: () {
-                              // Aksi saat item notifikasi ditekan
-                            },
+                          Container(
+                            width: 45,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: PopupMenuButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              color: Colors
+                                  .white, // Background color of the dropdown
+                              icon: const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.black,
+                              ),
+                              itemBuilder: (BuildContext context) =>
+                                  <PopupMenuEntry>[
+                                const PopupMenuItem(
+                                  value: 'notification1',
+                                  child: Text('Notifications'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'notification2',
+                                  child: Text('Challenges'),
+                                ),
+                                // Add more PopupMenuItems as needed
+                              ],
+                              onSelected: (value) {
+                                // Handle notification selection here
+                                switch (value) {
+                                  case 'notification1':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const NotificationsPage()),
+                                    );
+                                    break;
+                                  case 'notification2':
+                                    // Navigator.push(
+                                    // context,
+                                    // MaterialPageRoute(builder: (context) => NotificationPage2()),
+                                    // );
+                                    break;
+                                  // Add cases for more notifications as needed
+                                }
+                              },
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      // Baris pertama: Profil dengan ikon, nama, dan tombol edit
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Ikon foto profil bulat
+                          const CircleAvatar(
+                            radius: 30, // Ukuran ikon
+                            // backgroundImage: AssetImage('assets/profile_picture.jpg'), // Contoh gambar
+                          ),
+                          const SizedBox(
+                              width: 16), // Jarak antara ikon dan teks
+                          // Kolom untuk teks nama dan deskripsi
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start, // Teks rata kiri
+                              children: [
+                                Text(
+                                  userProfile?['fullName'] ?? '', // Nama profil
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  userProfile?['email'] ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Tombol Edit dengan border circle
+                          ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    20), // Sudut melengkung
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 35,
+                                vertical: 0,
+                              ), // Padding untuk tombol
+                              backgroundColor: const Color.fromARGB(
+                                  255, 166, 172, 254), // Warna latar belakang
+                              foregroundColor: Colors.white, // Warna teks
+                            ),
+                            child: const Text(
+                              'Edit',
+                              style: TextStyle(
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                          height: 32), // Jarak antara baris pertama dan kedua
+
+                      // Baris kedua: Tiga kartu saling bersebelahan
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment
+                            .spaceEvenly, // Sebar kartu secara merata
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 70, // Atur tinggi kartu
+                              child: _buildStatCard(
+                                  '2024', 'Year joined'), // Kartu pertama
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: SizedBox(
+                              height: 70, // Atur tinggi kartu
+                              child: _buildStatCard(
+                                  '48h 27m', 'Times used'), // Kartu kedua
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: SizedBox(
+                              height: 70, // Atur tinggi kartu
+                              child: _buildStatCard(
+                                  userProfile?['birth_date'] ?? '',
+                                  'Birthday'), // Kartu ketiga
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Tambahkan komponen AccountSection
+                      const AccountSection(),
+
+                      const SizedBox(height: 32),
+
+                      // Tambahkan komponen NotificationSection
+                      const NotificationSection(),
+
+                      const SizedBox(height: 32),
+
+                      // Tambahkan komponen OtherSection
+                      const OtherSection(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -345,22 +415,184 @@ class ProfilePage extends StatelessWidget {
           children: [
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
-                color: Color.fromARGB(255, 180, 152, 255), // Warna biru
+                color: Color.fromARGB(255, 180, 152, 255),
               ),
             ),
-            SizedBox(height: 2), // Jarak antara teks atas dan bawah
+            const SizedBox(height: 2),
             Text(
               value,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
-                color: Colors.grey, // Warna abu-abu
+                color: Colors.grey,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class AccountSection extends StatelessWidget {
+  const AccountSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Account',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.account_circle),
+                title: const Text('Personal Data'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Aksi saat item ditekan
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.emoji_events),
+                title: const Text('Achievement'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Aksi saat item ditekan
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.history),
+                title: const Text('Activity History'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Aksi saat item ditekan
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.school),
+                title: const Text('Study Progress'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Aksi saat item ditekan
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Komponen NotificationSection
+class NotificationSection extends StatelessWidget {
+  const NotificationSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Notification',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            leading: const Icon(Icons.notifications),
+            title: const Text('Pop-up Notification'),
+            trailing: Switch(
+              value: true, // Ganti nilai sesuai kebutuhan
+              onChanged: (value) {
+                // Tangani perubahan nilai switch
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Komponen OtherSection
+class OtherSection extends StatelessWidget {
+  const OtherSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Other',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.contact_mail),
+                title: const Text('Contact Us'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Aksi saat item ditekan
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.privacy_tip),
+                title: const Text('Privacy Policy'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Aksi saat item ditekan
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.settings),
+                title: const Text('Settings'),
+                trailing: const Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  // Aksi saat item ditekan
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

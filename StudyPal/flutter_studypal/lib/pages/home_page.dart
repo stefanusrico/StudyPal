@@ -1,9 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'calendar_page.dart';
+import 'main_screen.dart';
+import 'home_page.dart';
+import 'insight_page.dart';
+import 'group_page.dart';
+import 'profile_page.dart';
 import 'settings_page.dart';
+import 'profile_page.dart';
 import 'notifications_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +29,7 @@ List<IconMenu> iconList = [
 ];
 
 List<String> subjectList = [
+  "",
   "Math",
   "English",
   "Science",
@@ -29,10 +37,31 @@ List<String> subjectList = [
 ];
 
 class HomePage extends StatefulWidget {
-  final StopWatchTimer
-      stopWatchTimer; // Tambahkan parameter untuk referensi stopWatchTimer
+  final StopWatchTimer stopWatchTimer;
+  final ValueNotifier<int> timerValueNotifier;
+  final StreamController<int> timerStreamController;
+  final bool isTimerRunning;
+  final String selectedSubject;
+  final String selectedMethod;
+  final Function(String) updateSelectedSubject;
+  final Function(String) updateSelectedMethod;
+  final List<Map<String, dynamic>> latestStudyList;
+  final Function(Map<String, dynamic>) onLatestStudyAdded;
+  final ValueNotifier<int> accumulatedTimeNotifier;
 
-  const HomePage({super.key, required this.stopWatchTimer});
+  const HomePage(
+      {super.key,
+      required this.stopWatchTimer,
+      required this.timerValueNotifier,
+      required this.timerStreamController,
+      required this.isTimerRunning,
+      required this.selectedSubject,
+      required this.selectedMethod,
+      required this.updateSelectedSubject,
+      required this.updateSelectedMethod,
+      required this.latestStudyList,
+      required this.onLatestStudyAdded,
+      required this.accumulatedTimeNotifier});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -43,14 +72,48 @@ class _HomePageState extends State<HomePage> {
   int selectedIndexSubject = -1;
   List<bool> switchValues = [false, false, false];
   String selectedSubject = '';
+  String selectedMethod = '';
+  String latestSubject = '';
+  String latestTime = '';
   String? email;
   String? token;
   Map<String, dynamic>? userProfile;
+  final List<Map<String, dynamic>> _latestStudyList = [];
+  int accumulatedTime = 0;
 
   @override
   void initState() {
     super.initState();
-    fetchData(); // Panggil fungsi untuk mengambil email saat inisialisasi halaman
+    fetchData();
+    selectedSubject = widget.selectedSubject;
+    selectedMethod = widget.selectedMethod;
+  }
+
+  String getSelectedSubject() {
+    return selectedSubject;
+  }
+
+  String getSelectedMethod() {
+    return selectedMethod;
+  }
+
+  void updateSelectedSubject(String subject) {
+    setState(() {
+      selectedSubject = subject;
+    });
+  }
+
+  void updateSelectedMethod(String method) {
+    setState(() {
+      selectedMethod = method;
+    });
+  }
+
+  void addToLatestStudyList(Map<String, dynamic> data) {
+    setState(() {
+      _latestStudyList.add(data);
+      widget.onLatestStudyAdded(data);
+    });
   }
 
   Future<void> _getEmailandToken() async {
@@ -114,6 +177,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void updateSubject() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now();
@@ -169,14 +236,23 @@ class _HomePageState extends State<HomePage> {
                                       value: 'menu1',
                                       child: Row(
                                         children: [
-                                          const Icon(Icons
-                                              .person), // Tambahkan ikon di sebelah kiri teks
-                                          const SizedBox(
-                                              width:
-                                                  10), // Beri jarak antara ikon dan teks
+                                          const Icon(Icons.person),
+                                          const SizedBox(width: 10),
                                           Text(userProfile?['fullName'] ?? ''),
                                         ],
                                       ),
+                                      onTap: () {
+                                        debugPrint(
+                                            '${userProfile?['fullName'] ?? ''}');
+                                        print('Menu1 tapped');
+                                        print(
+                                            'Calling navigateToProfilePage()');
+                                        final mainScreenState = MainScreen
+                                            .mainScreenKey.currentState;
+                                        mainScreenState
+                                            ?.navigateToProfilePage();
+                                        print(mainScreenState);
+                                      },
                                     ),
                                     PopupMenuItem(
                                       value: 'menu2',
@@ -304,12 +380,14 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     StreamBuilder<int>(
-                      stream: widget.stopWatchTimer.rawTime,
-                      initialData: widget.stopWatchTimer.rawTime.value,
+                      stream: widget.timerStreamController.stream,
+                      initialData: 0,
                       builder: (context, snapshot) {
                         final value = snapshot.data ?? 0;
-                        final displayTime = StopWatchTimer.getDisplayTime(value,
-                            hours: true); // Atur format waktu
+                        final displayTime = StopWatchTimer.getDisplayTime(
+                          value,
+                          hours: true,
+                        );
                         return Padding(
                           padding: const EdgeInsets.fromLTRB(0, 24, 0, 20),
                           child: Align(
@@ -326,6 +404,22 @@ class _HomePageState extends State<HomePage> {
                         );
                       },
                     ),
+                    // ValueListenableBuilder<int>(
+                    //   valueListenable: widget.accumulatedTimeNotifier,
+                    //   builder: (context, accumulatedTime, child) {
+                    //     return Padding(
+                    //       padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+                    //       child: Text(
+                    //         'Accumulated Time: ${StopWatchTimer.getDisplayTime(accumulatedTime)}',
+                    //         style: const TextStyle(
+                    //           fontSize: 18,
+                    //           fontWeight: FontWeight.bold,
+                    //           color: Colors.white,
+                    //         ),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                     const Padding(
                       padding: EdgeInsets.fromLTRB(0, 0, 0,
                           55), // Memberikan padding 10.0 di atas dan 20.0 di bawah
@@ -360,7 +454,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              _showEditSubjectDialog(context);
+                              showEditSubjectDialog(context, updateSubject);
                             },
                             child: const Text(
                               'Edit Subject',
@@ -378,13 +472,14 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.only(left: 10),
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: subjectList.length +
-                            1, // Tambahkan 1 untuk kartu tambahan untuk menambahkan subjek baru
+                        itemCount: subjectList
+                            .length, // Sesuaikan itemCount ke panjang asli subjectList
                         itemBuilder: (BuildContext context, int position) {
-                          if (position == subjectList.length) {
+                          // Lewati item pertama dengan mengakses indeks dari posisi + 1
+                          if (position == subjectList.length - 1) {
                             return GestureDetector(
                               onTap: () {
-                                _showAddSubjectDialog(context);
+                                showAddSubjectDialog(context);
                               },
                               child: Container(
                                 width: 120,
@@ -414,12 +509,13 @@ class _HomePageState extends State<HomePage> {
                                             width:
                                                 3), // Jarak antara ikon dan teks
                                         Flexible(
-                                          child: Text('Add New Subject',
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                // fontSize: 16,
-                                              ),
-                                              overflow: TextOverflow.ellipsis),
+                                          child: Text(
+                                            'Add New Subject',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -428,11 +524,15 @@ class _HomePageState extends State<HomePage> {
                               ),
                             );
                           } else {
-                            // Tampilkan kartu subjek seperti biasa
+                            // Tampilkan kartu subjek seperti biasa dengan indeks posisi + 1
                             return GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  selectedIndexSubject = position;
+                                  selectedIndexSubject = position + 1;
+                                  widget.updateSelectedSubject(
+                                      subjectList[position + 1]);
+                                  debugPrint(
+                                      'Selected Subject: ${subjectList[position + 1]}');
                                 });
                               },
                               child: Container(
@@ -440,16 +540,17 @@ class _HomePageState extends State<HomePage> {
                                 margin:
                                     const EdgeInsets.symmetric(horizontal: 5),
                                 child: Card(
-                                  color: (selectedIndexSubject == position)
+                                  color: (selectedIndexSubject == position + 1)
                                       ? const Color.fromARGB(255, 157, 158, 251)
                                       : null,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     side: BorderSide(
-                                      color: (selectedIndexSubject == position)
-                                          ? const Color.fromARGB(
-                                              255, 136, 146, 237)
-                                          : Colors.transparent,
+                                      color:
+                                          (selectedIndexSubject == position + 1)
+                                              ? const Color.fromARGB(
+                                                  255, 136, 146, 237)
+                                              : Colors.transparent,
                                       width: 4,
                                     ),
                                   ),
@@ -459,12 +560,12 @@ class _HomePageState extends State<HomePage> {
                                         MainAxisAlignment.spaceAround,
                                     children: <Widget>[
                                       Text(
-                                        subjectList[position],
+                                        subjectList[position + 1],
                                         style: TextStyle(
-                                          color:
-                                              (selectedIndexSubject == position)
-                                                  ? Colors.white
-                                                  : Colors.black,
+                                          color: (selectedIndexSubject ==
+                                                  position + 1)
+                                              ? Colors.white
+                                              : Colors.black,
                                         ),
                                       ),
                                     ],
@@ -504,6 +605,10 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               setState(() {
                                 selectedIndex = position;
+                                widget.updateSelectedMethod(
+                                    iconList[position].titleIcon);
+                                debugPrint(
+                                    'Selected Method: ${iconList[position].titleIcon}');
                               });
                             },
                             child: Container(
@@ -628,7 +733,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showEditSubjectDialog(BuildContext context) {
+  void showEditSubjectDialog(
+      BuildContext context, VoidCallback onSubjectUpdated) {
     String initialValue =
         selectedSubject.isNotEmpty ? selectedSubject : subjectList[0];
     String newSubject = selectedSubject;
@@ -644,12 +750,10 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButton<String>(
-                    value: selectedSubject.isNotEmpty
-                        ? selectedSubject
-                        : subjectList[0],
+                    value: initialValue,
                     onChanged: (String? newValue) {
                       setState(() {
-                        selectedSubject = newValue ?? '';
+                        selectedSubject = newValue ?? initialValue;
                         newSubject = selectedSubject;
                       });
                     },
@@ -663,7 +767,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                   TextField(
                     onChanged: (value) {
-                      // Saat pengguna mengetik, perbarui nilai newSubject
                       newSubject = value;
                     },
                     decoration: const InputDecoration(
@@ -675,7 +778,6 @@ class _HomePageState extends State<HomePage> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    // Perbarui nama subjek yang dipilih saat tombol "Done" ditekan
                     if (newSubject.isNotEmpty &&
                         !subjectList.contains(newSubject)) {
                       int selectedIndex = subjectList.indexOf(selectedSubject);
@@ -684,6 +786,8 @@ class _HomePageState extends State<HomePage> {
                           subjectList[selectedIndex] = newSubject;
                         });
                       }
+                      selectedSubject = newSubject;
+                      onSubjectUpdated(); // Panggil callback
                     }
                     Navigator.of(context).pop();
                   },
@@ -697,13 +801,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _addNewSubject(String newSubject) {
+  void addNewSubject(String newSubject) {
     setState(() {
       subjectList.add(newSubject);
     });
   }
 
-  void _showAddSubjectDialog(BuildContext context) {
+  void showAddSubjectDialog(BuildContext context) {
     String newSubject = ''; // Variabel untuk menyimpan nama subjek baru
 
     showDialog(
@@ -728,7 +832,7 @@ class _HomePageState extends State<HomePage> {
                 TextButton(
                   onPressed: () {
                     // Panggil fungsi untuk menambahkan subjek baru
-                    _addNewSubject(newSubject);
+                    addNewSubject(newSubject);
                     Navigator.of(context)
                         .pop(); // Tutup dialog setelah menambahkan subjek baru
                   },
@@ -926,6 +1030,76 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ]),
                 ),
+                if (_latestStudyList.isNotEmpty)
+                  Column(
+                    children: _latestStudyList.map((data) {
+                      return Container(
+                        width: MediaQuery.of(context).size.width * 0.85,
+                        height: 75,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircleAvatar(
+                                radius: 25,
+                                backgroundColor: Colors.grey,
+                                child: Icon(
+                                  Icons.book,
+                                  size: 32,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      data['subject'],
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      data['time'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Icon(
+                                Icons.more_vert,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  )
               ],
             ),
           ),

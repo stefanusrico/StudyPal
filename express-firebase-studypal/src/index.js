@@ -168,7 +168,6 @@ app.use((req, res, next) => {
     return res.status(401).json({ error: "Token revoked" })
   }
 
-  // Lanjutkan ke middleware berikutnya jika token masih valid
   next()
 })
 
@@ -190,6 +189,44 @@ app.get("/profile/:userId", async (req, res) => {
   } catch (error) {
     console.error("Error fetching user data:", error)
     res.status(500).json({ error: "Failed to fetch user data" })
+  }
+})
+
+app.post("/users/:userId/send-accumulated-time", async (req, res) => {
+  try {
+    const { userId } = req.params
+    const { accumulatedTime } = req.body
+
+    if (!userId || accumulatedTime === undefined) {
+      return res
+        .status(400)
+        .json({ error: "userId and accumulatedTime are required" })
+    }
+
+    const userRef = db.collection("users").doc(userId)
+    const timeRef = userRef.collection("time").doc("accumulatedTime")
+
+    await db.runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userRef)
+      if (!userDoc.exists) {
+        throw new Error("User not found")
+      }
+
+      const timeDoc = await transaction.get(timeRef)
+      let newAccumulatedTime = accumulatedTime
+
+      if (timeDoc.exists) {
+        const currentData = timeDoc.data()
+        newAccumulatedTime += currentData.accumulatedTime || 0
+      }
+
+      transaction.set(timeRef, { accumulatedTime: newAccumulatedTime })
+    })
+
+    res.status(200).json({ message: "Accumulated time sent successfully" })
+  } catch (error) {
+    console.error("Error sending accumulated time:", error.message)
+    res.status(500).json({ error: "Failed to send accumulated time" })
   }
 })
 

@@ -7,6 +7,7 @@ import 'package:flutter_studypal/components/square_tile.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decode/jwt_decode.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -242,12 +243,21 @@ class _LoginPageState extends State<LoginPage> {
         final token = responseData['token'];
         debugPrint('Token: $token');
 
+        Map<String, dynamic> decodedToken = Jwt.parseJwt(token);
+        debugPrint('Decoded Token: $decodedToken');
+
         // Simpan email ke SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('email', emailController.text);
         prefs.setString('token', token);
 
         Navigator.pushReplacementNamed(context, '/home');
+      } else if (response.statusCode == 401) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid email or password. Please try again.'),
+          ),
+        );
       } else {
         final jsonResponse = json.decode(response.body);
         debugPrint('Failed to send data: ${response.statusCode}');

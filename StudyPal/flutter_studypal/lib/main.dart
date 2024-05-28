@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/pages/auth/login_page.dart';
+import 'package:flutter_studypal/pages/chat_screen.dart';
 import 'package:flutter_studypal/pages/main_screen.dart';
 import 'package:flutter_studypal/pages/onboarding_page.dart';
 import 'package:flutter_studypal/pages/auth/register_page.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
         '/onboarding': (context) => const Onboarding(),
         '/register': (context) => const RegisterPage(),
         '/login': (context) => const LoginPage(),
+        '/chat': (context) => const ChatPage(),
       },
     );
   }
