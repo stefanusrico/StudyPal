@@ -5,4 +5,7 @@ Kelompok Faker:
 - Naufal Syafiq Somantri
 - Rahaditya Muhammad Damar Riyadhi
 
-Backend yang dipakai untuk menjalankan aplikasi adalah ExpressJS, bukan Laravel.
+Tech Stack:
+- Flutter
+- ExpressJS
+
