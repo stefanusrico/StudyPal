@@ -134,8 +134,7 @@ class _HomePageState extends State<HomePage> {
       final response = await http.get(
         apiUrl,
         headers: {
-          "Authorization":
-              "Bearer $token", // Sertakan token dalam header Authorization
+          "Authorization": "Bearer $token",
         },
       );
 

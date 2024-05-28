@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/components/line_chart.dart';
 import 'package:flutter_studypal/components/pie_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_page.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class InsightPage extends StatefulWidget {
   const InsightPage({super.key});
@@ -14,198 +17,250 @@ class InsightPage extends StatefulWidget {
 class _InsightPageState extends State<InsightPage> {
   int selectedTile = 0;
   String _selectedOption = 'Daily'; // Variabel untuk menyimpan pilihan
+  Map<String, dynamic>? accumulatedTimeData;
+  String? email;
+  String? token;
+
+  Future<void> _getEmailandToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // Set nilai email dari SharedPreferences ke variabel email
+      email = prefs.getString('email');
+      token = prefs.getString('token');
+    });
+  }
+
+  Future<void> _fetchAccumulatedTime() async {
+    await _getEmailandToken(); // Menunggu email dan token diambil
+
+    if (email != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:4000/users/$email/accumulated-time'),
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          debugPrint('Data received from API: $data');
+          setState(() {
+            accumulatedTimeData = data;
+          });
+        } else {
+          print('Failed to fetch accumulated time: ${response.statusCode}');
+        }
+      } catch (e) {
+        // Handle exception
+        print('Exception occurred: $e');
+      }
+    } else {
+      print('Email is null');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAccumulatedTime();
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color.fromARGB(255, 174, 196, 250), // Warna awal
-                Color.fromARGB(255, 115, 155, 255), // Warna akhir
-              ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(17, 16, 17, 25),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: 45,
-                              height: 45,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: PopupMenuButton(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                color: Colors
-                                    .white, // Background color of the dropdown
-                                icon: const Icon(
-                                  Icons.menu,
-                                  color: Colors.black,
-                                ),
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry>[
-                                  const PopupMenuItem(
-                                    value: 'menu1',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons
-                                            .person), // Tambahkan ikon di sebelah kiri teks
-                                        SizedBox(
-                                            width:
-                                                10), // Beri jarak antara ikon dan teks
-                                        Text('John Doe'),
-                                      ],
-                                    ),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'menu2',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons
-                                            .logout_rounded), // Tambahkan ikon
-                                        SizedBox(width: 10),
-                                        Text('Sign Out'),
-                                      ],
-                                    ),
-                                  ),
-                                  const PopupMenuDivider(
-                                      height: 1), // Garis pembatas
-                                  const PopupMenuItem(
-                                    value: 'menu3',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.settings), // Ikon tambahan
-                                        SizedBox(width: 10),
-                                        Text('Settings'),
-                                      ],
-                                    ),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'menu4',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.help), // Ikon tambahan
-                                        SizedBox(width: 10),
-                                        Text('Help'),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                                onSelected: (value) {
-                                  // Handle menu item selection here
-                                  switch (value) {
-                                    case 'menu1':
-                                      // Tambahkan logika menu 1
-                                      break;
-                                    case 'menu2':
-                                      // Tambahkan logika menu 2
-                                      break;
-                                    case 'menu3':
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const SettingsPage(), // Arahkan ke SettingsPage
-                                        ),
-                                      );
-                                      break;
-                                    case 'menu4':
-                                      // Tambahkan logika menu 4
-                                      break;
-                                    // Add cases for more menu items as needed
-                                  }
-                                },
-                              ),
-                            ),
-                            const Spacer(),
-                            const Spacer(),
-                            const Spacer(),
-                            const Text(
-                              'Activity Tracker',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              width: 95,
-                              height: 45,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: PopupMenuButton<String>(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                color: Colors.white,
-                                icon: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Text(
-                                      _selectedOption, // Tampilkan opsi yang dipilih
-                                      style:
-                                          const TextStyle(color: Colors.black),
-                                    ),
-                                    const Icon(Icons.expand_more_rounded,
-                                        color: Colors
-                                            .black), // Ikon panah ke bawah
-                                  ],
-                                ),
-                                onSelected: (value) {
-                                  setState(() {
-                                    _selectedOption =
-                                        value; // Ubah pilihan saat opsi dipilih
-                                  });
-                                },
-                                itemBuilder: (BuildContext context) =>
-                                    <PopupMenuEntry<String>>[
-                                  const PopupMenuItem<String>(
-                                    value: 'Daily', // Nilai untuk opsi "daily"
-                                    child: Text('Daily'),
-                                  ),
-                                  const PopupMenuItem<String>(
-                                    value:
-                                        'Weekly', // Nilai untuk opsi "weekly"
-                                    child: Text('Weekly'),
-                                  ),
-                                  const PopupMenuItem<String>(
-                                    value:
-                                        'Monthly', // Nilai untuk opsi "monthly"
-                                    child: Text('Monthly'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const LineChartSample1(),
+        body: RefreshIndicator(
+          onRefresh: _fetchAccumulatedTime,
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color.fromARGB(255, 174, 196, 250), // Warna awal
+                  Color.fromARGB(255, 115, 155, 255), // Warna akhir
                 ],
               ),
-              bottomDetailsSheet(),
-            ],
+            ),
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(17, 16, 17, 25),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                width: 45,
+                                height: 45,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: PopupMenuButton(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  color: Colors
+                                      .white, // Background color of the dropdown
+                                  icon: const Icon(
+                                    Icons.menu,
+                                    color: Colors.black,
+                                  ),
+                                  itemBuilder: (BuildContext context) =>
+                                      <PopupMenuEntry>[
+                                    const PopupMenuItem(
+                                      value: 'menu1',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons
+                                              .person), // Tambahkan ikon di sebelah kiri teks
+                                          SizedBox(
+                                              width:
+                                                  10), // Beri jarak antara ikon dan teks
+                                          Text('John Doe'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'menu2',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons
+                                              .logout_rounded), // Tambahkan ikon
+                                          SizedBox(width: 10),
+                                          Text('Sign Out'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuDivider(
+                                        height: 1), // Garis pembatas
+                                    const PopupMenuItem(
+                                      value: 'menu3',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.settings), // Ikon tambahan
+                                          SizedBox(width: 10),
+                                          Text('Settings'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'menu4',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.help), // Ikon tambahan
+                                          SizedBox(width: 10),
+                                          Text('Help'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                  onSelected: (value) {
+                                    // Handle menu item selection here
+                                    switch (value) {
+                                      case 'menu1':
+                                        // Tambahkan logika menu 1
+                                        break;
+                                      case 'menu2':
+                                        // Tambahkan logika menu 2
+                                        break;
+                                      case 'menu3':
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const SettingsPage(), // Arahkan ke SettingsPage
+                                          ),
+                                        );
+                                        break;
+                                      case 'menu4':
+                                        // Tambahkan logika menu 4
+                                        break;
+                                      // Add cases for more menu items as needed
+                                    }
+                                  },
+                                ),
+                              ),
+                              const Spacer(),
+                              const Spacer(),
+                              const Spacer(),
+                              const Text(
+                                'Activity Tracker',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                width: 95,
+                                height: 45,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: PopupMenuButton<String>(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  color: Colors.white,
+                                  icon: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Text(
+                                        _selectedOption, // Tampilkan opsi yang dipilih
+                                        style: const TextStyle(
+                                            color: Colors.black),
+                                      ),
+                                      const Icon(Icons.expand_more_rounded,
+                                          color: Colors
+                                              .black), // Ikon panah ke bawah
+                                    ],
+                                  ),
+                                  onSelected: (value) {
+                                    setState(() {
+                                      _selectedOption =
+                                          value; // Ubah pilihan saat opsi dipilih
+                                    });
+                                  },
+                                  itemBuilder: (BuildContext context) =>
+                                      <PopupMenuEntry<String>>[
+                                    const PopupMenuItem<String>(
+                                      value:
+                                          'Daily', // Nilai untuk opsi "daily"
+                                      child: Text('Daily'),
+                                    ),
+                                    const PopupMenuItem<String>(
+                                      value:
+                                          'Weekly', // Nilai untuk opsi "weekly"
+                                      child: Text('Weekly'),
+                                    ),
+                                    const PopupMenuItem<String>(
+                                      value:
+                                          'Monthly', // Nilai untuk opsi "monthly"
+                                      child: Text('Monthly'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const LineChartSample1(),
+                  ],
+                ),
+                bottomDetailsSheet(),
+              ],
+            ),
           ),
         ),
       ),
@@ -274,7 +329,12 @@ class _InsightPageState extends State<InsightPage> {
                                   .spaceBetween, // Atur jarak antar-kartu
                               children: [
                                 buildCustomCard(
-                                    "02:10:47", "Time Total"), // Kartu pertama
+                                  accumulatedTimeData != null
+                                      ? formatDuration(accumulatedTimeData![
+                                          'accumulatedTime'])
+                                      : '00:00:00',
+                                  'Time Total',
+                                ),
                                 buildCustomCard(
                                     "00:20:43", "Max Focus"), // Kartu kedua
                               ],
@@ -289,9 +349,19 @@ class _InsightPageState extends State<InsightPage> {
                                   .spaceBetween, // Atur jarak antar-kartu
                               children: [
                                 buildCustomCard(
-                                    "12h 20m", "Start Time"), // Kartu ketiga
+                                  accumulatedTimeData != null
+                                      ? formatTime(
+                                          accumulatedTimeData!['startTime'])
+                                      : '00:00',
+                                  'Start Time',
+                                ),
                                 buildCustomCard(
-                                    "14h 30m", "Finish Time"), // Kartu keempat
+                                  accumulatedTimeData != null
+                                      ? formatTime(
+                                          accumulatedTimeData!['finishTime'])
+                                      : '00:00',
+                                  'Finish Time',
+                                ),
                               ],
                             ),
                           ),
@@ -355,5 +425,30 @@ class _InsightPageState extends State<InsightPage> {
         ),
       ),
     );
+  }
+}
+
+String formatDuration(int? accumulatedTime) {
+  if (accumulatedTime != null) {
+    final duration = Duration(milliseconds: accumulatedTime);
+    final hours = duration.inHours.remainingDigits(2);
+    final minutes = duration.inMinutes.remainder(60).remainingDigits(2);
+    final seconds = duration.inSeconds.remainder(60).remainingDigits(2);
+    return '$hours:$minutes:$seconds';
+  } else {
+    return '00:00:00';
+  }
+}
+
+String formatTime(String isoTime) {
+  final dateTime = DateTime.parse(isoTime);
+  final formattedTime = DateFormat('HH:mm').format(dateTime);
+  return formattedTime;
+}
+
+extension on int {
+  String remainingDigits(int digits) {
+    final value = toString().padLeft(digits, '0');
+    return value.substring(value.length - digits);
   }
 }

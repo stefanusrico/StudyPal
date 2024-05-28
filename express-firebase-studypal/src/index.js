@@ -204,7 +204,7 @@ app.post("/users/:userId/send-accumulated-time", async (req, res) => {
     }
 
     const userRef = db.collection("users").doc(userId)
-    const timeRef = userRef.collection("time").doc("accumulatedTime")
+    const timeRef = userRef.collection("timer").doc("time")
 
     await db.runTransaction(async (transaction) => {
       const userDoc = await transaction.get(userRef)

@@ -49,6 +49,9 @@ class _MainScreenState extends State<MainScreen> {
   String latestTime = '';
   int accumulatedTime = 0;
 
+  DateTime? startTime;
+  DateTime? finishTime;
+
   // StopWatchTimer instance
   final StopWatchTimer _stopWatchTimer = StopWatchTimer(
     mode: StopWatchMode.countUp,
@@ -78,7 +81,8 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  Future<void> sendAccumulatedTime(int accumulatedTime) async {
+  Future<void> sendAccumulatedTime(
+      int accumulatedTime, DateTime startTime, DateTime finishTime) async {
     final url =
         Uri.parse('http://10.0.2.2:4000/users/$email/send-accumulated-time');
 
@@ -91,6 +95,8 @@ class _MainScreenState extends State<MainScreen> {
         },
         body: jsonEncode({
           'accumulatedTime': accumulatedTime,
+          'startTime': startTime.toIso8601String(),
+          'finishTime': finishTime.toIso8601String(),
         }),
       );
 
@@ -107,7 +113,8 @@ class _MainScreenState extends State<MainScreen> {
 
   Future<void> _sendAccumulatedTime() async {
     await _getEmailandToken();
-    sendAccumulatedTime(accumulatedTime);
+    sendAccumulatedTime(
+        accumulatedTime, startTime ?? DateTime.now(), DateTime.now());
   }
 
   void _handleLatestStudyAdded(Map<String, dynamic> data) {
@@ -188,6 +195,7 @@ class _MainScreenState extends State<MainScreen> {
               accumulatedTime += _stopWatchTimer
                   .rawTime.value; // Tambahkan waktu saat ini ke accumulatedTime
               _accumulatedTimeNotifier.value = accumulatedTime;
+              finishTime = DateTime.now();
               debugPrint('Adding data to latestStudyList');
               debugPrint('Subject: $selectedSubject');
             });
@@ -273,17 +281,19 @@ class _MainScreenState extends State<MainScreen> {
               _stopWatchTimer.onStartTimer();
               _stopWatchTimer.rawTime.listen((value) {
                 _timerStreamController.add(value);
+                startTime = DateTime.now();
+                debugPrint('Start Time: $startTime');
               });
               setState(() {
                 timerStarted = true;
                 timerRunning = true;
                 isTimerRunning = true;
+
                 debugPrint('Clearing latestStudyList');
                 for (var data in _latestStudyList) {
                   debugPrint(
                       'Subject: ${data['subject']}, Time: ${data['time']}');
                 }
-                // latestStudyList.clear();
               });
             },
           ),
