@@ -594,12 +594,13 @@ class _GroupPageState extends State<GroupPage> {
                             alignment: Alignment.centerRight,
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.pushReplacement(
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => const ChatPage()),
                                 );
                               },
+                              
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.purple,
                                 shape: RoundedRectangleBorder(

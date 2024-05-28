@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class Event {
   final String subject;
   final DateTime startTime;
 
   Event({required this.subject, required this.startTime});
+
+  Map<String, dynamic> toJson() => {
+        'subject': subject,
+        'startTime': startTime.toIso8601String(),
+      };
+
+  factory Event.fromJson(Map<String, dynamic> json) => Event(
+        subject: json['subject'],
+        startTime: DateTime.parse(json['startTime']),
+      );
 }
 
 class AddSchedulePage extends StatefulWidget {
@@ -121,6 +133,12 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime selectedDate = DateTime.now();
   Map<DateTime, List<Event>> events = {}; // Kelompokkan event berdasarkan tanggal
 
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents(); // Load events saat inisialisasi
+  }
+
   void goToNextMonth() {
     setState(() {
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
@@ -151,6 +169,7 @@ class _CalendarPageState extends State<CalendarPage> {
     }
 
     events[dateKey]!.add(event); // Tambahkan event ke daftar
+    _saveEvents(); // Save events setiap kali ada penambahan event baru
   }
 
   List<Event> getEventsForDate(DateTime date) {
@@ -162,6 +181,29 @@ class _CalendarPageState extends State<CalendarPage> {
     );
 
     return events[dateKey] ?? [];
+  }
+
+  Future<void> _saveEvents() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    Map<String, String> stringEvents = events.map((key, value) {
+      return MapEntry(key.toIso8601String(), jsonEncode(value.map((e) => e.toJson()).toList()));
+    });
+    prefs.setString('events', jsonEncode(stringEvents));
+  }
+
+  Future<void> _loadEvents() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? eventsString = prefs.getString('events');
+    if (eventsString != null) {
+      Map<String, dynamic> stringEvents = jsonDecode(eventsString);
+      setState(() {
+        events = stringEvents.map((key, value) {
+          DateTime date = DateTime.parse(key);
+          List<Event> eventList = (jsonDecode(value) as List).map((e) => Event.fromJson(e)).toList();
+          return MapEntry(date, eventList);
+        });
+      });
+    }
   }
 
   @override
@@ -271,56 +313,50 @@ class _CalendarPageState extends State<CalendarPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ListTile(
-  title: Row(
-    children: [
-      // Label waktu per jam
-      Text(
-        hour,
-        style: TextStyle(
-          color: Colors.grey[700],
-        ),
-      ),
-      // Tambahkan jarak antara waktu dan kartu subjek
-      SizedBox(width: 10), // Jarak horizontal 10 piksel
+                      title: Row(
+                        children: [
+                          // Label waktu per jam
+                          Text(
+                            hour,
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          // Tambahkan jarak antara waktu dan kartu subjek
+                          SizedBox(width: 10), // Jarak horizontal 10 piksel
 
-      // Kartu subjek dan waktu yang bisa discroll secara horizontal
-      if (eventsForHour.isNotEmpty)
-        Expanded( // Pastikan `Row` dapat menggunakan seluruh lebar yang tersisa
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal, // Untuk scroll horizontal
-            child: Row(
-              children: eventsForHour.map((event) {
-                String formattedTime = DateFormat.jm().format(event.startTime);
+                          // Kartu subjek dan waktu yang bisa discroll secara horizontal
+                          if (eventsForHour.isNotEmpty)
+                            Expanded( // Pastikan `Row` dapat menggunakan seluruh lebar yang tersisa
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal, // Untuk scroll horizontal
+                                child: Row(
+                                  children: eventsForHour.map((event) {
+                                    String formattedTime = DateFormat.jm().format(event.startTime);
 
-                return Card(
-                  color: Color.fromARGB(255, 247, 195, 254),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(17, 5, 17, 5),
-                    child: Text(
-                      '${event.subject}, $formattedTime', // Format teks dalam kartu
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
+                                    return Card(
+                                      color: Color.fromARGB(255, 247, 195, 254),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(17, 5, 17, 5),
+                                        child: Text(
+                                          '${event.subject}, $formattedTime', // Format teks dalam kartu
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-    ],
-  ),
-),
-
-                    // Divider(
-                    //   color: Colors.grey[400], // Garis pembatas
-                    //   height: 1,
-                    //   thickness: 1,
-                    // ),
                   ],
                 );
               },
@@ -344,7 +380,7 @@ class _CalendarPageState extends State<CalendarPage> {
           );
         },
         child: Icon(Icons.add),
-        backgroundColor:Color.fromARGB(255, 209, 210, 249), // Warna jika dipilih,
+        backgroundColor: Color.fromARGB(255, 209, 210, 249), // Warna jika dipilih,
         shape: CircleBorder(), // Bentuk bulat
       ),
     );
