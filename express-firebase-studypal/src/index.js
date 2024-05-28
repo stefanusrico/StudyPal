@@ -195,12 +195,12 @@ app.get("/profile/:userId", async (req, res) => {
 app.post("/users/:userId/send-accumulated-time", async (req, res) => {
   try {
     const { userId } = req.params
-    const { accumulatedTime } = req.body
+    const { accumulatedTime, startTime, finishTime } = req.body
 
-    if (!userId || accumulatedTime === undefined) {
+    if (!userId || accumulatedTime === undefined || !finishTime) {
       return res
         .status(400)
-        .json({ error: "userId and accumulatedTime are required" })
+        .json({ error: "userId, accumulatedTime, and finishTime are required" })
     }
 
     const userRef = db.collection("users").doc(userId)
@@ -212,21 +212,54 @@ app.post("/users/:userId/send-accumulated-time", async (req, res) => {
         throw new Error("User not found")
       }
 
-      const timeDoc = await transaction.get(timeRef)
-      let newAccumulatedTime = accumulatedTime
-
-      if (timeDoc.exists) {
-        const currentData = timeDoc.data()
-        newAccumulatedTime += currentData.accumulatedTime || 0
+      const existingTimeDoc = await transaction.get(timeRef)
+      const timeData = {
+        accumulatedTime: accumulatedTime,
+        finishTime: finishTime,
       }
 
-      transaction.set(timeRef, { accumulatedTime: newAccumulatedTime })
+      if (existingTimeDoc.exists) {
+        const existingData = existingTimeDoc.data()
+        timeData.startTime = existingData.startTime
+      } else if (startTime) {
+        timeData.startTime = startTime
+      } else {
+        timeData.startTime = new Date().toISOString()
+      }
+
+      transaction.set(timeRef, timeData)
     })
 
     res.status(200).json({ message: "Accumulated time sent successfully" })
   } catch (error) {
     console.error("Error sending accumulated time:", error.message)
     res.status(500).json({ error: "Failed to send accumulated time" })
+  }
+})
+
+app.get("/users/:userId/accumulated-time", async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    const userRef = db.collection("users").doc(userId)
+    const timeRef = userRef.collection("timer").doc("time")
+
+    const timeDoc = await timeRef.get()
+
+    if (!timeDoc.exists) {
+      return res.status(404).json({ error: "Accumulated time not found" })
+    }
+
+    const timeData = timeDoc.data()
+
+    res.status(200).json({
+      accumulatedTime: timeData.accumulatedTime,
+      startTime: timeData.startTime,
+      finishTime: timeData.finishTime,
+    })
+  } catch (error) {
+    console.error("Error getting accumulated time:", error.message)
+    res.status(500).json({ error: "Failed to get accumulated time" })
   }
 })
 
