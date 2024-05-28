@@ -313,6 +313,13 @@ class _HomePageState extends State<HomePage> {
                                         break;
                                       case 'menu4':
                                         // Tambahkan logika menu 4
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LeaderboardPage(), // Arahkan ke SettingsPage
+                                          ),
+                                        );
                                         break;
                                       // Add cases for more menu items as needed
                                     }
