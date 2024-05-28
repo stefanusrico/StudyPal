@@ -1012,7 +1012,7 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Latest Study',
+                          'Activity History',
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 18,

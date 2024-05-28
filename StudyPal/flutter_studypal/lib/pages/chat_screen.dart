@@ -30,7 +30,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    // _loadMessages();
   }
 
   void _addMessage(types.Message message) {
@@ -214,13 +214,21 @@ class _ChatPageState extends State<ChatPage> {
         appBar: AppBar(
           title: const Text('Chat'), // Judul "Chat"
           centerTitle: true, // Posisikan teks di tengah header
-          leading: IconButton(
-            // Tombol kembali di pojok kiri atas
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
+          // leading: IconButton(
+          //   // Tombol kembali di pojok kiri atas
+          //   icon: const Icon(Icons.arrow_back),
+          //   onPressed: () {
+          //     Navigator.of(context).pop();
+          //   },
+          // ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.more_vert),
+              onPressed: () {
+                // Aksi untuk tombol AppBar lainnya
+              },
+            ),
+          ],
         ),
         body: Chat(
           messages: _messages,
