@@ -628,7 +628,5 @@ void _logout(BuildContext context) async {
   await prefs.remove('token');
 
   // Navigasi ke halaman login atau halaman utama
-  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(builder: (context) => const LoginPage()),
-  );
+  Navigator.of(context, rootNavigator: true).pushReplacement(MaterialPageRoute(builder: (context) => new LoginPage()));
 }
