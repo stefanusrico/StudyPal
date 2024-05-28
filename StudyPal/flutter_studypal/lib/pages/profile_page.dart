@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/pages/auth/login_page.dart';
 import 'package:intl/intl.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
@@ -390,6 +391,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
                       // Tambahkan komponen OtherSection
                       const OtherSection(),
+
+                      const SizedBox(height: 16),
+
+                      ElevatedButton(
+                        onPressed: () {
+                          // Aksi saat tombol logout ditekan
+                          _logout(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24.0,
+                            vertical: 16.0,
+                          ),
+                        ),
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ),
@@ -595,4 +619,16 @@ class OtherSection extends StatelessWidget {
       ],
     );
   }
+}
+
+void _logout(BuildContext context) async {
+  // Hapus data email dan token dari SharedPreferences
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('email');
+  await prefs.remove('token');
+
+  // Navigasi ke halaman login atau halaman utama
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(builder: (context) => const LoginPage()),
+  );
 }
