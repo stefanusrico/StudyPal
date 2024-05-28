@@ -73,7 +73,6 @@ class _MainScreenState extends State<MainScreen> {
   Future<void> _getEmailandToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      // Set nilai email dari SharedPreferences ke variabel email
       email = prefs.getString('email');
       token = prefs.getString('token');
     });
@@ -133,8 +132,7 @@ class _MainScreenState extends State<MainScreen> {
           updateSelectedMethod: updateSelectedMethod,
           latestStudyList: _latestStudyList,
           onLatestStudyAdded: _handleLatestStudyAdded,
-          accumulatedTimeNotifier:
-              _accumulatedTimeNotifier, // Tambahkan parameter ini
+          accumulatedTimeNotifier: _accumulatedTimeNotifier,
         ),
         navKey: homeNavKey,
       ),
@@ -241,11 +239,27 @@ class _MainScreenState extends State<MainScreen> {
           SpeedDialChild(
             child: const Icon(Icons.timer,
                 color: Color.fromARGB(255, 196, 141, 255)),
-            label: 'Select Subject and Method',
+            label: 'Timer Start',
             onTap: () {
-              // Tampilkan pesan atau lakukan tindakan lain
-              print(
-                  'Please select a subject and method before starting the timer.');
+              // Show an alert dialog
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('Incomplete Selection'),
+                    content: const Text(
+                        'Please select a subject and method before starting the timer.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('OK'),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
         ];
