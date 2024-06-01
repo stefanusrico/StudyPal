@@ -82,6 +82,8 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    
     return Scaffold(
       appBar: AppBar(
         title: Text("Add Schedule"),
@@ -103,19 +105,22 @@ class _AddSchedulePageState extends State<AddSchedulePage> {
               trailing: Icon(Icons.access_time),
               onTap: () => _pickStartTime(context),
             ),
-            TextField(
-              onChanged: (value) {
-                subject = value;
-              },
-              decoration: InputDecoration(
-                labelText: "Subject",
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+              child: TextField(
+                onChanged: (value) {
+                  subject = value;
+                },
+                decoration: InputDecoration(
+                  labelText: "Subject",
+                ),
               ),
             ),
             SizedBox(height: 20),
             Center(
               child: ElevatedButton(
                 onPressed: _saveSchedule,
-                child: Text("Save Schedule"),
+                child: Text("Save Schedule", style: TextStyle(color: themeProvider.primaryColor),),
               ),
             ),
           ],
@@ -397,7 +402,8 @@ class _CalendarPageState extends State<CalendarPage> {
           );
         },
         child: Icon(Icons.add),
-        backgroundColor: themeProvider.primaryColor, // Warna jika dipilih,
+        backgroundColor: themeProvider.primaryColor,
+        foregroundColor: Colors.white, // Warna jika dipilih,
         shape: CircleBorder(), // Bentuk bulat
       ),
     );

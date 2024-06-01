@@ -371,7 +371,7 @@ Widget build(BuildContext context) {
             });
           }
         },
-        activeColor: const Color.fromARGB(255, 150, 180, 254),
+        activeColor: themeProvider.primaryColor,
         inactiveColor: Colors.grey,
         backgroundColor: isDarkMode ? Colors.black : Colors.white, // Ubah warna latar belakang berdasarkan mode
       ),

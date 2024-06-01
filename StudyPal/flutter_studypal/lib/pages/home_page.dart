@@ -15,7 +15,6 @@ import 'profile_page.dart';
 import 'notifications_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'MyHomePage.dart';
 import 'package:flutter_studypal/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -288,7 +287,7 @@ class _HomePageState extends State<HomePage> {
                                           Icon(Icons
                                               .logout_rounded), // Tambahkan ikon
                                           SizedBox(width: 10),
-                                          Text('Change Theme'),
+                                          Text('Sign Out'),
                                         ],
                                       ),
                                     ),
@@ -324,13 +323,6 @@ class _HomePageState extends State<HomePage> {
                                         break;
                                       case 'menu2':
                                         // Tambahkan logika menu 2
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                 MyHomePage(), // Arahkan ke SettingsPage
-                                          ),
-                                        );
                                         break;
                                       case 'menu3':
                                         Navigator.push(
@@ -741,6 +733,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget buildActionCard(String text, int index) {
     // Tambahkan parameter index untuk mengetahui switch mana yang diubah
+    final themeProvider = Provider.of<ThemeModel>(context);
     return Container(
       width: 200, // Atur lebar kartu
       margin: const EdgeInsets.symmetric(
@@ -761,6 +754,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Switch.adaptive(
+                activeColor: themeProvider.primaryColor,
                 value: switchValues[
                     index], // Gunakan nilai switch sesuai dengan indeksnya
                 onChanged: (bool newValue) {

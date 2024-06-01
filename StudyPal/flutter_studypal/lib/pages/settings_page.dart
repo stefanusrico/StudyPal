@@ -1,5 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:flutter_studypal/utils/theme_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -9,12 +11,87 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _isDark = false;
+
+  void _showThemeDialog(BuildContext context) {
+    var theme = Provider.of<ThemeModel>(context, listen: false);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Theme Settings'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Toggle Dark Mode:'),
+              Switch(
+                value: theme.isDarkMode,
+                onChanged: (value) {
+                  theme.toggleDarkMode(value);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showColorPickerDialog(BuildContext context) {
+    var theme = Provider.of<ThemeModel>(context, listen: false);
+    Color pickerColor = theme.primaryColor;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Pick a Primary Color'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (color) {
+                pickerColor = color;
+              },
+              showLabel: true,
+              pickerAreaHeightPercent: 0.8,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Select'),
+              onPressed: () {
+                theme.updatePrimaryColor(pickerColor);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: _isDark ? ThemeData.dark() : ThemeData.light(),
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    var theme = Provider.of<ThemeModel>(context);
+
+    return SafeArea(
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Settings"),
@@ -29,21 +106,42 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: "General",
                   children: [
                     _CustomListTile(
-                        title: "Dark Mode",
-                        icon: Icons.dark_mode_outlined,
-                        trailing: Switch(
-                            value: _isDark,
-                            onChanged: (value) {
-                              setState(() {
-                                _isDark = value;
-                              });
-                            })),
+                      title: "Dark Mode",
+                      icon: Icons.dark_mode_outlined,
+                      trailing: Switch(
+                        activeColor: themeProvider.primaryColor,
+                        value: theme.isDarkMode,
+                        onChanged: (value) {
+                          theme.toggleDarkMode(value);
+                        },
+                      ),
+                    ),
+                    _CustomListTile(
+                      title: "Theme Color",
+                      icon: Icons.color_lens_outlined,
+                      trailing: GestureDetector(
+                        onTap: () {
+                          _showColorPickerDialog(context);
+                        },
+                        child: Container(
+                          margin: EdgeInsets.fromLTRB(0, 0, 6, 0),
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: theme.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
                     const _CustomListTile(
-                        title: "Notifications",
-                        icon: Icons.notifications_none_rounded),
-                    const _CustomListTile(
-                        title: "Security Status",
-                        icon: CupertinoIcons.lock_shield),
+                      title: "Notifications",
+                      icon: Icons.notifications_none_rounded,
+                    ),
+                     _CustomListTile(
+                      title: "Security Status",
+                      icon: Icons.lock,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16.0), // Beri ruang antara bagian
@@ -51,27 +149,42 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: "Organization",
                   children: [
                     _CustomListTile(
-                        title: "Profile", icon: Icons.person_outline_rounded),
+                      title: "Profile",
+                      icon: Icons.person_outline_rounded,
+                    ),
                     _CustomListTile(
-                        title: "Messaging", icon: Icons.message_outlined),
+                      title: "Messaging",
+                      icon: Icons.message_outlined,
+                    ),
                     _CustomListTile(
-                        title: "Calling", icon: Icons.phone_outlined),
+                      title: "Calling",
+                      icon: Icons.phone_outlined,
+                    ),
                     _CustomListTile(
-                        title: "People", icon: Icons.contacts_outlined),
+                      title: "People",
+                      icon: Icons.contacts_outlined,
+                    ),
                     _CustomListTile(
-                        title: "Calendar", icon: Icons.calendar_today_rounded),
+                      title: "Calendar",
+                      icon: Icons.calendar_today_rounded,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16.0), // Beri ruang antara bagian
                 const _CardSection(
                   children: [
                     _CustomListTile(
-                        title: "Help & Feedback",
-                        icon: Icons.help_outline_rounded),
+                      title: "Help & Feedback",
+                      icon: Icons.help_outline_rounded,
+                    ),
                     _CustomListTile(
-                        title: "About", icon: Icons.info_outline_rounded),
+                      title: "About",
+                      icon: Icons.info_outline_rounded,
+                    ),
                     _CustomListTile(
-                        title: "Sign out", icon: Icons.exit_to_app_rounded),
+                      title: "Sign out",
+                      icon: Icons.exit_to_app_rounded,
+                    ),
                   ],
                 ),
               ],
@@ -97,7 +210,7 @@ class _CardSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
+      // color: Colors.white,
       elevation: 4, // Untuk efek bayangan
       margin: const EdgeInsets.symmetric(vertical: 8.0), // Jarak antar-card
       shape: RoundedRectangleBorder(

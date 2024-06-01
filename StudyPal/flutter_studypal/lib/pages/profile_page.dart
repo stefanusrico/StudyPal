@@ -541,6 +541,8 @@ class NotificationSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -561,6 +563,7 @@ class NotificationSection extends StatelessWidget {
             leading: const Icon(Icons.notifications),
             title: const Text('Pop-up Notification'),
             trailing: Switch(
+              activeColor: themeProvider.primaryColor,
               value: true, // Ganti nilai sesuai kebutuhan
               onChanged: (value) {
                 // Tangani perubahan nilai switch
