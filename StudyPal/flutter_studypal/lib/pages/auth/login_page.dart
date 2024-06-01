@@ -8,6 +8,23 @@ import 'package:flutter_studypal/utils/global_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
+
+Color lightenColor(Color color, [double amount = 0.1]) {
+  assert(amount >= 0 && amount <= 1);
+  final hsl = HSLColor.fromColor(color);
+  final hslLight = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+  return hslLight.toColor();
+}
+
+// Fungsi untuk menggelapkan warna
+Color darkenColor(Color color, [double amount = 0.1]) {
+  assert(amount >= 0 && amount <= 1);
+  final hsl = HSLColor.fromColor(color);
+  final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+  return hslDark.toColor();
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,8 +41,11 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -56,6 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     children: [
                       TextFormField(
+                        style: TextStyle(color: Colors.grey),
                         controller: emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -66,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Email",
                           hintText: "Enter Your Email",
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color.fromRGBO(0, 0, 0, 0.259)),
                           prefixIcon: const Icon(Icons.email),
                           filled: true,
                           fillColor: Colors.grey[200],
@@ -82,6 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        style: TextStyle(color: Colors.grey),
                         controller: passwordController,
                         obscureText: isObscureText,
                         obscuringCharacter: "*",
@@ -94,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Password",
                           hintText: "Enter Your Password",
-                          hintStyle: const TextStyle(color: Colors.black26),
+                          hintStyle: const TextStyle(color: Color.fromRGBO(0, 0, 0, 0.259)),
                           filled: true,
                           fillColor: Colors.grey[200],
                           prefixIcon: const Icon(Icons.lock),
@@ -130,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 60,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(45),
-                    gradient: GlobalColors.buttonGradient,
+                    gradient: LinearGradient(colors: [darkenColor(themeProvider.primaryColor), themeProvider.primaryColor]),
                   ),
                   child: TextButton(
                     onPressed: () {
@@ -176,7 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                         textStyle: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
-                          color: Colors.black,
+                          // color: Colors.black,
                         ),
                       ),
                     ),
@@ -193,10 +215,10 @@ class _LoginPageState extends State<LoginPage> {
                       child: Text(
                         "Register",
                         style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
+                          textStyle: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            color: Colors.purple,
+                            color: themeProvider.primaryColor,
                           ),
                         ),
                       ),

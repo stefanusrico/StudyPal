@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class Event {
   final String subject;
@@ -208,6 +210,9 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     List<DateTime> daysInMonth = [];
     int lastDay = DateTime(currentMonth.year, currentMonth.month + 1, 0).day;
     for (int i = 1; i <= lastDay; i++) {
@@ -267,8 +272,10 @@ class _CalendarPageState extends State<CalendarPage> {
                     padding: EdgeInsets.symmetric(vertical: 10), // Padding yang seragam
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Color.fromARGB(255, 157, 158, 251) // Warna jika dipilih
-                          : Colors.grey[100], // Warna default
+                          ? themeProvider.primaryColor // Warna jika dipilih
+                          : isDarkMode 
+                              ? Color.fromARGB(255, 60, 60, 60)
+                              : Colors.grey[100], // Warna default
                       borderRadius: BorderRadius.circular(10), // Ujung yang bulat
                     ),
                     child: Column(
@@ -277,13 +284,21 @@ class _CalendarPageState extends State<CalendarPage> {
                         Text(
                           DateFormat('EEE').format(date), // Nama hari
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black, // Warna font
+                            color: isSelected 
+                              ? Colors.white 
+                              : isDarkMode 
+                                  ? Colors.white
+                                  : Colors.black, // Warna font
                           ),
                         ),
                         Text(
                           DateFormat('d').format(date), // Tanggal
                           style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black, // Warna font
+                            color: isSelected 
+                              ? Colors.white 
+                              : isDarkMode 
+                                  ? Colors.white
+                                  : Colors.black,  // Warna font
                           ),
                         ),
                       ],
@@ -319,7 +334,9 @@ class _CalendarPageState extends State<CalendarPage> {
                           Text(
                             hour,
                             style: TextStyle(
-                              color: Colors.grey[700],
+                              color: isDarkMode 
+                                  ? Colors.white
+                                  : Colors.grey[700],
                             ),
                           ),
                           // Tambahkan jarak antara waktu dan kartu subjek
@@ -335,7 +352,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                     String formattedTime = DateFormat.jm().format(event.startTime);
 
                                     return Card(
-                                      color: Color.fromARGB(255, 247, 195, 254),
+                                      color: themeProvider.primaryColor,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(20),
                                       ),
@@ -380,7 +397,7 @@ class _CalendarPageState extends State<CalendarPage> {
           );
         },
         child: Icon(Icons.add),
-        backgroundColor: Color.fromARGB(255, 209, 210, 249), // Warna jika dipilih,
+        backgroundColor: themeProvider.primaryColor, // Warna jika dipilih,
         shape: CircleBorder(), // Bentuk bulat
       ),
     );

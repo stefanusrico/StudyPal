@@ -1,11 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/components/line_chart.dart';
 import 'package:flutter_studypal/components/pie_chart.dart';
+import 'package:flutter_studypal/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'settings_page.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
+
+Color lightenColor(Color color, [double amount = 0.1]) {
+  assert(amount >= 0 && amount <= 1);
+  final hsl = HSLColor.fromColor(color);
+  final hslLight = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+  return hslLight.toColor();
+}
+
+// Fungsi untuk menggelapkan warna
+Color darkenColor(Color color, [double amount = 0.1]) {
+  assert(amount >= 0 && amount <= 1);
+  final hsl = HSLColor.fromColor(color);
+  final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+  return hslDark.toColor();
+}
 
 class InsightPage extends StatefulWidget {
   const InsightPage({super.key});
@@ -68,198 +86,204 @@ class _InsightPageState extends State<InsightPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: RefreshIndicator(
-          onRefresh: _fetchAccumulatedTime,
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
+  final themeProvider = Provider.of<ThemeModel>(context);
+  final isDarkMode = themeProvider.isDarkMode;
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
+      home: SafeArea(
+        child: Scaffold(
+          body: RefreshIndicator(
+            onRefresh: _fetchAccumulatedTime,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color.fromARGB(255, 174, 196, 250), // Warna awal
-                  Color.fromARGB(255, 115, 155, 255), // Warna akhir
-                ],
+                colors: isDarkMode
+                    ? [Colors.black, Colors.black54]
+                    : [darkenColor(themeProvider.primaryColor), lightenColor(themeProvider.primaryColor),],
               ),
             ),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(17, 16, 17, 25),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 45,
-                                height: 45,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: PopupMenuButton(
-                                  shape: RoundedRectangleBorder(
+              child: Stack(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(17, 16, 17, 25),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  width: 45,
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                  color: isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  color: Colors
-                                      .white, // Background color of the dropdown
-                                  icon: const Icon(
-                                    Icons.menu,
-                                    color: Colors.black,
+                                  child: PopupMenuButton(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    // color: Colors.white, // Background color of the dropdown
+                                    icon: const Icon(
+                                      Icons.menu,
+                                      // color: Colors.black,
+                                    ),
+                                    itemBuilder: (BuildContext context) =>
+                                        <PopupMenuEntry>[
+                                      const PopupMenuItem(
+                                        value: 'menu1',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons
+                                                .person), // Tambahkan ikon di sebelah kiri teks
+                                            SizedBox(
+                                                width:
+                                                    10), // Beri jarak antara ikon dan teks
+                                            Text('John Doe'),
+                                          ],
+                                        ),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'menu2',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons
+                                                .logout_rounded), // Tambahkan ikon
+                                            SizedBox(width: 10),
+                                            Text('Sign Out'),
+                                          ],
+                                        ),
+                                      ),
+                                      const PopupMenuDivider(
+                                          height: 1), // Garis pembatas
+                                      const PopupMenuItem(
+                                        value: 'menu3',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.settings), // Ikon tambahan
+                                            SizedBox(width: 10),
+                                            Text('Settings'),
+                                          ],
+                                        ),
+                                      ),
+                                      const PopupMenuItem(
+                                        value: 'menu4',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.help), // Ikon tambahan
+                                            SizedBox(width: 10),
+                                            Text('Help'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    onSelected: (value) {
+                                      // Handle menu item selection here
+                                      switch (value) {
+                                        case 'menu1':
+                                          // Tambahkan logika menu 1
+                                          break;
+                                        case 'menu2':
+                                          // Tambahkan logika menu 2
+                                          break;
+                                        case 'menu3':
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const SettingsPage(), // Arahkan ke SettingsPage
+                                            ),
+                                          );
+                                          break;
+                                        case 'menu4':
+                                          // Tambahkan logika menu 4
+                                          break;
+                                        // Add cases for more menu items as needed
+                                      }
+                                    },
                                   ),
-                                  itemBuilder: (BuildContext context) =>
-                                      <PopupMenuEntry>[
-                                    const PopupMenuItem(
-                                      value: 'menu1',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons
-                                              .person), // Tambahkan ikon di sebelah kiri teks
-                                          SizedBox(
-                                              width:
-                                                  10), // Beri jarak antara ikon dan teks
-                                          Text('John Doe'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'menu2',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons
-                                              .logout_rounded), // Tambahkan ikon
-                                          SizedBox(width: 10),
-                                          Text('Sign Out'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuDivider(
-                                        height: 1), // Garis pembatas
-                                    const PopupMenuItem(
-                                      value: 'menu3',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.settings), // Ikon tambahan
-                                          SizedBox(width: 10),
-                                          Text('Settings'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'menu4',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.help), // Ikon tambahan
-                                          SizedBox(width: 10),
-                                          Text('Help'),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                  onSelected: (value) {
-                                    // Handle menu item selection here
-                                    switch (value) {
-                                      case 'menu1':
-                                        // Tambahkan logika menu 1
-                                        break;
-                                      case 'menu2':
-                                        // Tambahkan logika menu 2
-                                        break;
-                                      case 'menu3':
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const SettingsPage(), // Arahkan ke SettingsPage
-                                          ),
-                                        );
-                                        break;
-                                      case 'menu4':
-                                        // Tambahkan logika menu 4
-                                        break;
-                                      // Add cases for more menu items as needed
-                                    }
-                                  },
                                 ),
-                              ),
-                              const Spacer(),
-                              const Spacer(),
-                              const Spacer(),
-                              const Text(
-                                'Activity Tracker',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                const Spacer(),
+                                const Spacer(),
+                                const Spacer(),
+                                const Text(
+                                  'Activity Tracker',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const Spacer(),
-                              Container(
-                                width: 95,
-                                height: 45,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: PopupMenuButton<String>(
-                                  shape: RoundedRectangleBorder(
+                                const Spacer(),
+                                Container(
+                                  width: 95,
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                  color: isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  color: Colors.white,
-                                  icon: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Text(
-                                        _selectedOption, // Tampilkan opsi yang dipilih
-                                        style: const TextStyle(
-                                            color: Colors.black),
+                                  child: PopupMenuButton<String>(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    // color: Colors.white,
+                                    icon: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Text(
+                                          _selectedOption, // Tampilkan opsi yang dipilih
+                                          // style: const TextStyle(color: Colors.black),
+                                        ),
+                                        const Icon(Icons.expand_more_rounded), // Ikon panah ke bawah
+                                      ],
+                                    ),
+                                    onSelected: (value) {
+                                      setState(() {
+                                        _selectedOption =
+                                            value; // Ubah pilihan saat opsi dipilih
+                                      });
+                                    },
+                                    itemBuilder: (BuildContext context) =>
+                                        <PopupMenuEntry<String>>[
+                                      const PopupMenuItem<String>(
+                                        value:
+                                            'Daily', // Nilai untuk opsi "daily"
+                                        child: Text('Daily'),
                                       ),
-                                      const Icon(Icons.expand_more_rounded,
-                                          color: Colors
-                                              .black), // Ikon panah ke bawah
+                                      const PopupMenuItem<String>(
+                                        value:
+                                            'Weekly', // Nilai untuk opsi "weekly"
+                                        child: Text('Weekly'),
+                                      ),
+                                      const PopupMenuItem<String>(
+                                        value:
+                                            'Monthly', // Nilai untuk opsi "monthly"
+                                        child: Text('Monthly'),
+                                      ),
                                     ],
                                   ),
-                                  onSelected: (value) {
-                                    setState(() {
-                                      _selectedOption =
-                                          value; // Ubah pilihan saat opsi dipilih
-                                    });
-                                  },
-                                  itemBuilder: (BuildContext context) =>
-                                      <PopupMenuEntry<String>>[
-                                    const PopupMenuItem<String>(
-                                      value:
-                                          'Daily', // Nilai untuk opsi "daily"
-                                      child: Text('Daily'),
-                                    ),
-                                    const PopupMenuItem<String>(
-                                      value:
-                                          'Weekly', // Nilai untuk opsi "weekly"
-                                      child: Text('Weekly'),
-                                    ),
-                                    const PopupMenuItem<String>(
-                                      value:
-                                          'Monthly', // Nilai untuk opsi "monthly"
-                                      child: Text('Monthly'),
-                                    ),
-                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const LineChartSample1(),
-                  ],
-                ),
-                bottomDetailsSheet(),
-              ],
+                      const LineChartSample1(),
+                    ],
+                  ),
+                  bottomDetailsSheet(),
+                ],
+              ),
             ),
           ),
         ),
@@ -270,6 +294,8 @@ class _InsightPageState extends State<InsightPage> {
   Widget bottomDetailsSheet() {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('E, d MMM').format(now);
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
 
     return DraggableScrollableSheet(
       initialChildSize: .63,
@@ -277,7 +303,16 @@ class _InsightPageState extends State<InsightPage> {
       maxChildSize: 1,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: isDarkMode 
+          ? BoxDecoration(
+            color: Color.fromARGB(255, 25, 25, 25),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(50),
+              topRight: Radius.circular(50),
+            ),
+          )
+
+          : BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(50),
@@ -304,7 +339,7 @@ class _InsightPageState extends State<InsightPage> {
                   Container(
                     padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
                     child: Card(
-                      color: const Color.fromARGB(255, 214, 225, 255),
+                      color: lightenColor(themeProvider.primaryColor),
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -372,7 +407,7 @@ class _InsightPageState extends State<InsightPage> {
                   Container(
                     padding: const EdgeInsets.fromLTRB(25, 10, 25, 0),
                     child: Card(
-                      color: const Color.fromARGB(255, 236, 240, 249),
+                      color: lightenColor(themeProvider.primaryColor),
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -392,6 +427,9 @@ class _InsightPageState extends State<InsightPage> {
   }
 
   Widget buildCustomCard(String title, String subtitle) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Container(
       // margin: EdgeInsets.fromLTRB(10, 5, 10, 10),
       padding: const EdgeInsets.symmetric(horizontal: 0),
@@ -410,9 +448,9 @@ class _InsightPageState extends State<InsightPage> {
             children: [
               Text(
                 title, // Teks besar
-                style: const TextStyle(
+                style:  TextStyle(
                   fontSize: 18,
-                  color: Color.fromARGB(255, 136, 146, 237),
+                  color: darkenColor(themeProvider.primaryColor),
                   fontWeight: FontWeight.bold,
                 ),
               ),

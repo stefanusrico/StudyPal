@@ -8,6 +8,8 @@ import 'package:flutter_studypal/utils/global_text.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage2 extends StatefulWidget {
   final String firstName;
@@ -36,7 +38,7 @@ class _RegisterPageState extends State<RegisterPage2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -78,15 +80,15 @@ class _RegisterPageState extends State<RegisterPage2> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: DropdownButtonFormField<String>(
                   value: _gender,
-                  hint: const Text("Select Gender"),
+                  hint: const Text("Select Gender", style: TextStyle(color: Colors.black12),),
                   items: const [
                     DropdownMenuItem(
                       value: "male",
-                      child: Text("Male"),
+                      child: Text("Male", style: TextStyle(color: Colors.grey),),
                     ),
                     DropdownMenuItem(
                       value: "female",
-                      child: Text("Female"),
+                      child: Text("Female", style: TextStyle(color: Colors.grey),),
                     ),
                   ],
                   onChanged: (value) {
@@ -128,10 +130,12 @@ class _RegisterPageState extends State<RegisterPage2> {
                   },
                   child: AbsorbPointer(
                     child: TextFormField(
+                      style: TextStyle(color: Colors.grey),
                       controller: TextEditingController(
                         text: _birthDate == null
                             ? ''
                             : '${_birthDate!.day}/${_birthDate!.month}/${_birthDate!.year}',
+                            
                       ),
                       decoration: InputDecoration(
                         labelText: "Birth Date",

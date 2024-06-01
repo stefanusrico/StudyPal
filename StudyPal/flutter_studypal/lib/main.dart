@@ -6,9 +6,16 @@ import 'package:flutter_studypal/pages/onboarding_page.dart';
 import 'package:flutter_studypal/pages/auth/register_page.dart';
 import 'package:flutter_studypal/pages/auth/register_page2.dart';
 import 'package:flutter_studypal/pages/splash_page.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_studypal/utils/theme_provider.dart';  // Pastikan ini diimpor dengan benar
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeModel(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,16 +23,24 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashPage(),
-        '/home': (context) => const MainScreen(),
-        '/onboarding': (context) => const Onboarding(),
-        '/register': (context) => const RegisterPage(),
-        '/login': (context) => const LoginPage(),
-        '/chat': (context) => const ChatPage(),
+    return Consumer<ThemeModel>(
+      builder: (context, theme, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primaryColor: theme.primaryColor,
+            brightness: theme.isDarkMode ? Brightness.dark : Brightness.light,
+          ),
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const SplashPage(),
+            '/home': (context) => const MainScreen(),
+            '/onboarding': (context) => const Onboarding(),
+            '/register': (context) => const RegisterPage(),
+            '/login': (context) => const LoginPage(),
+            '/chat': (context) => const ChatPage(),
+          },
+        );
       },
     );
   }

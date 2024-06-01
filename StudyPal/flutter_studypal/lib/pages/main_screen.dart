@@ -12,6 +12,8 @@ import 'home_page.dart';
 import 'insight_page.dart';
 import 'group_page.dart';
 import 'profile_page.dart';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
   static final GlobalKey<_MainScreenState> mainScreenKey =
@@ -179,11 +181,13 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   List<SpeedDialChild> _getSpeedDialChildren() {
+  final themeProvider = Provider.of<ThemeModel>(context);
+  final isDarkMode = themeProvider.isDarkMode;
     if (timerStarted && timerRunning) {
       return [
         SpeedDialChild(
-          child: const Icon(Icons.pause,
-              color: Color.fromARGB(255, 204, 157, 255)),
+          child: Icon(Icons.pause,
+              color: themeProvider.primaryColor),
           label: 'Pause',
           onTap: () {
             _stopWatchTimer.onStopTimer();
@@ -212,8 +216,8 @@ class _MainScreenState extends State<MainScreen> {
     } else if (timerStarted && !timerRunning) {
       return [
         SpeedDialChild(
-          child: const Icon(Icons.play_arrow_rounded,
-              color: Color.fromARGB(255, 236, 130, 248)),
+          child: Icon(Icons.play_arrow_rounded,
+              color: themeProvider.primaryColor),
           label: 'Resume',
           onTap: () {
             _stopWatchTimer.onStartTimer();
@@ -227,8 +231,7 @@ class _MainScreenState extends State<MainScreen> {
           },
         ),
         SpeedDialChild(
-          child:
-              const Icon(Icons.stop, color: Color.fromARGB(255, 146, 54, 244)),
+          child: Icon(Icons.stop, color: themeProvider.primaryColor),
           label: 'Stop',
           onTap: () {
             _timerValueNotifier.value = _stopWatchTimer.rawTime.value;
@@ -245,8 +248,8 @@ class _MainScreenState extends State<MainScreen> {
       if (selectedSubject.isEmpty || selectedMethod.isEmpty) {
         return [
           SpeedDialChild(
-            child: const Icon(Icons.timer,
-                color: Color.fromARGB(255, 196, 141, 255)),
+            child: Icon(Icons.timer,
+                color: themeProvider.primaryColor),
             label: 'Timer Start',
             onTap: () {
               // Show an alert dialog
@@ -274,8 +277,8 @@ class _MainScreenState extends State<MainScreen> {
       } else {
         return [
           SpeedDialChild(
-            child: const Icon(Icons.timer,
-                color: Color.fromARGB(255, 196, 141, 255)),
+            child: Icon(Icons.timer,
+                color: themeProvider.primaryColor),
             label: 'Timer start',
             onTap: () {
               _stopWatchTimer.onStartTimer();
@@ -303,75 +306,77 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    print('Current selectedTab: $selectedTab');
-    return WillPopScope(
-      onWillPop: () {
-        if (items[selectedTab].navKey.currentState?.canPop() ?? false) {
-          items[selectedTab].navKey.currentState?.pop();
-          return Future.value(false);
-        } else {
-          return Future.value(true);
-        }
-      },
-      child: Scaffold(
-        key: MainScreen.mainScreenKey,
-        body: IndexedStack(
-          index: selectedTab,
-          children: items.map((page) {
-            return Navigator(
-              key: page.navKey,
-              onGenerateInitialRoutes: (navigator, initialRoute) {
-                return [
-                  MaterialPageRoute(
-                    builder: (context) => page.page,
-                  ),
-                ];
-              },
-            );
-          }).toList(),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: SpeedDial(
-          icon: timerStarted
-              ? (timerRunning ? Icons.pause : Icons.play_arrow_rounded)
-              : Icons.timer_outlined,
-          activeIcon: Icons.close,
-          foregroundColor: Colors.white,
-          backgroundColor: timerStarted
-              ? (timerRunning
-                  ? const Color.fromARGB(255, 186, 188, 252)
-                  : const Color.fromARGB(255, 145, 112, 255))
-              : const Color.fromARGB(255, 192, 193, 255),
-          overlayOpacity: 0.5, // Transparansi overlay saat SpeedDial aktif
-          children: _getSpeedDialChildren(),
-        ),
-        bottomNavigationBar: AnimatedBottomNavigationBar(
-          icons: const [
-            Icons.home_outlined,
-            Icons.insert_chart_outlined_rounded,
-            Icons.group_outlined,
-            Icons.person_outline,
-          ],
-          activeIndex: selectedTab,
-          gapLocation: GapLocation.center,
-          notchSmoothness: NotchSmoothness.softEdge,
-          onTap: (index) {
-            if (index == selectedTab) {
-              items[index]
-                  .navKey
-                  .currentState
-                  ?.popUntil((route) => route.isFirst);
-            } else {
-              setState(() {
-                selectedTab = index;
-              });
-            }
-          },
-          activeColor: const Color.fromARGB(255, 150, 180, 254),
-          inactiveColor: Colors.grey,
-        ),
+Widget build(BuildContext context) {
+  final themeProvider = Provider.of<ThemeModel>(context);
+  final isDarkMode = themeProvider.isDarkMode;
+  print('Current selectedTab: $selectedTab');
+
+  return WillPopScope(
+    onWillPop: () {
+      if (items[selectedTab].navKey.currentState?.canPop() ?? false) {
+        items[selectedTab].navKey.currentState?.pop();
+        return Future.value(false);
+      } else {
+        return Future.value(true);
+      }
+    },
+    child: Scaffold(
+      key: MainScreen.mainScreenKey,
+      body: IndexedStack(
+        index: selectedTab,
+        children: items.map((page) {
+          return Navigator(
+            key: page.navKey,
+            onGenerateInitialRoutes: (navigator, initialRoute) {
+              return [
+                MaterialPageRoute(
+                  builder: (context) => page.page,
+                ),
+              ];
+            },
+          );
+        }).toList(),
       ),
-    );
-  }
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: SpeedDial(
+        icon: timerStarted
+            ? (timerRunning ? Icons.pause : Icons.play_arrow_rounded)
+            : Icons.timer_outlined,
+        activeIcon: Icons.close,
+        foregroundColor: Colors.white,
+        backgroundColor: timerStarted
+            ? (timerRunning
+                ? themeProvider.primaryColor
+                : themeProvider.primaryColor)
+            : themeProvider.primaryColor,
+        overlayOpacity: 0.5, // Transparansi overlay saat SpeedDial aktif
+        children: _getSpeedDialChildren(),
+      ),
+      bottomNavigationBar: AnimatedBottomNavigationBar(
+        icons: const [
+          Icons.home_outlined,
+          Icons.insert_chart_outlined_rounded,
+          Icons.group_outlined,
+          Icons.person_outline,
+        ],
+        activeIndex: selectedTab,
+        gapLocation: GapLocation.center,
+        notchSmoothness: NotchSmoothness.softEdge,
+        onTap: (index) {
+          if (index == selectedTab) {
+            items[index].navKey.currentState?.popUntil((route) => route.isFirst);
+          } else {
+            setState(() {
+              selectedTab = index;
+            });
+          }
+        },
+        activeColor: const Color.fromARGB(255, 150, 180, 254),
+        inactiveColor: Colors.grey,
+        backgroundColor: isDarkMode ? Colors.black : Colors.white, // Ubah warna latar belakang berdasarkan mode
+      ),
+    ),
+  );
+}
+
 }

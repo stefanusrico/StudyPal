@@ -5,6 +5,8 @@ import 'package:flutter_studypal/components/horizontal_line.dart';
 import 'package:flutter_studypal/components/square_tile.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -24,8 +26,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -57,6 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     children: [
                       TextFormField(
+                        style: TextStyle(color: Colors.grey),
                         controller: firstNameController,
                         onChanged: (value) {
                           print('First Name: $value');
@@ -86,6 +92,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        style: TextStyle(color: Colors.grey),
                         controller: lastNameController,
                         onChanged: (value) {
                           print('Last Name: $value');
@@ -115,6 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        style: TextStyle(color: Colors.grey),
                         controller: emailController,
                         onChanged: (value) {
                           print('Email: $value');
@@ -144,6 +152,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
+                        style: TextStyle(color: Colors.grey),
                         controller: passwordController,
                         obscureText: isObscureText,
                         obscuringCharacter: "*",
@@ -199,7 +208,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           acceptTerms = newValue ?? false;
                         });
                       },
-                      activeColor: Colors.purple,
+                      activeColor: themeProvider.primaryColor,
                     ),
                     const Expanded(
                       child: Text(
@@ -215,7 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   height: 60,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(45),
-                    gradient: GlobalColors.buttonGradient,
+                    gradient: LinearGradient(colors: [darkenColor(themeProvider.primaryColor), themeProvider.primaryColor]),
                   ),
                   child: TextButton(
                     onPressed: () {
@@ -272,7 +281,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         textStyle: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: Colors.black,
+                          // color: Colors.black,
                         ),
                       ),
                     ),
@@ -289,10 +298,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: Text(
                         "Login",
                         style: GoogleFonts.poppins(
-                          textStyle: const TextStyle(
+                          textStyle: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Colors.purple,
+                            color: themeProvider.primaryColor,
                           ),
                         ),
                       ),

@@ -6,6 +6,8 @@ import 'notifications_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -100,6 +102,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
@@ -128,18 +133,19 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                                  color: isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PopupMenuButton(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              color: Colors
-                                  .white, // Background color of the dropdown
+                              // color: Colors.white, // Background color of the dropdown
                               icon: const Icon(
                                 Icons.menu,
-                                color: Colors.black,
+                                // color: Colors.black,
                               ),
                               itemBuilder: (BuildContext context) =>
                                   <PopupMenuEntry>[
@@ -219,7 +225,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           const Text(
                             "Profile",
                             style: TextStyle(
-                              color: Colors.black,
+                              // color: Colors.black,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -228,18 +234,19 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                                  color: isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PopupMenuButton(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              color: Colors
-                                  .white, // Background color of the dropdown
+                              // color: Colors.white, // Background color of the dropdown
                               icon: const Icon(
                                 Icons.notifications_outlined,
-                                color: Colors.black,
+                                // color: Colors.black,
                               ),
                               itemBuilder: (BuildContext context) =>
                                   <PopupMenuEntry>[
@@ -329,8 +336,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 horizontal: 35,
                                 vertical: 0,
                               ), // Padding untuk tombol
-                              backgroundColor: const Color.fromARGB(
-                                  255, 166, 172, 254), // Warna latar belakang
+                              backgroundColor: themeProvider.primaryColor, // Warna latar belakang
                               foregroundColor: Colors.white, // Warna teks
                             ),
                             child: const Text(
@@ -400,7 +406,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           _logout(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
+                          backgroundColor: themeProvider.primaryColor,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24.0,
                             vertical: 16.0,
@@ -411,6 +417,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           style: TextStyle(
                             fontSize: 16.0,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white
                           ),
                         ),
                       )
@@ -427,6 +434,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Fungsi untuk membuat kartu stat di baris kedua
   Widget _buildStatCard(String title, String value) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -439,9 +449,9 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: Color.fromARGB(255, 180, 152, 255),
+                color: themeProvider.primaryColor,
               ),
             ),
             const SizedBox(height: 2),

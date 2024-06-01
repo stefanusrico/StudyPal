@@ -15,6 +15,24 @@ import 'profile_page.dart';
 import 'notifications_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'MyHomePage.dart';
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:provider/provider.dart';
+
+Color lightenColor(Color color, [double amount = 0.1]) {
+  assert(amount >= 0 && amount <= 1);
+  final hsl = HSLColor.fromColor(color);
+  final hslLight = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+  return hslLight.toColor();
+}
+
+// Fungsi untuk menggelapkan warna
+Color darkenColor(Color color, [double amount = 0.1]) {
+  assert(amount >= 0 && amount <= 1);
+  final hsl = HSLColor.fromColor(color);
+  final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+  return hslDark.toColor();
+}
 
 class IconMenu {
   final IconData iconName;
@@ -186,19 +204,23 @@ class _HomePageState extends State<HomePage> {
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('E, d MMM').format(now);
 
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    // final themeColor = themeProvider.themeColor;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
       home: SafeArea(
         child: Scaffold(
           body: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Color.fromARGB(255, 174, 196, 250), // Warna awal
-                  Color.fromARGB(255, 115, 155, 255), // Warna akhir
-                ],
+                colors: isDarkMode
+                    ? [Colors.black, Colors.black54]
+                    : [darkenColor(themeProvider.primaryColor), lightenColor(themeProvider.primaryColor),],
               ),
             ),
             child: Stack(
@@ -217,18 +239,19 @@ class _HomePageState extends State<HomePage> {
                                 width: 45,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: PopupMenuButton(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  color: Colors
-                                      .white, // Background color of the dropdown
+                                  // color: Colors.white, // Background color of the dropdown
                                   icon: const Icon(
                                     Icons.menu,
-                                    color: Colors.black,
+                                    // color: Colors.black,
                                   ),
                                   itemBuilder: (BuildContext context) =>
                                       <PopupMenuEntry>[
@@ -265,7 +288,7 @@ class _HomePageState extends State<HomePage> {
                                           Icon(Icons
                                               .logout_rounded), // Tambahkan ikon
                                           SizedBox(width: 10),
-                                          Text('Sign Out'),
+                                          Text('Change Theme'),
                                         ],
                                       ),
                                     ),
@@ -301,6 +324,13 @@ class _HomePageState extends State<HomePage> {
                                         break;
                                       case 'menu2':
                                         // Tambahkan logika menu 2
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                 MyHomePage(), // Arahkan ke SettingsPage
+                                          ),
+                                        );
                                         break;
                                       case 'menu3':
                                         Navigator.push(
@@ -334,18 +364,19 @@ class _HomePageState extends State<HomePage> {
                                 width: 45,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: PopupMenuButton(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  color: Colors
-                                      .white, // Background color of the dropdown
+                                  // color: Colors.white, // Background color of the dropdown
                                   icon: const Icon(
                                     Icons.notifications_outlined,
-                                    color: Colors.black,
+                                    // color: Colors.black,
                                   ),
                                   itemBuilder: (BuildContext context) =>
                                       <PopupMenuEntry>[
@@ -493,8 +524,7 @@ class _HomePageState extends State<HomePage> {
                                 margin:
                                     const EdgeInsets.symmetric(horizontal: 5),
                                 child: Card(
-                                  color: Colors.grey[
-                                      100], // Warna latar belakang untuk kartu tambahan
+                                  // color: Colors.grey[100], // Warna latar belakang untuk kartu tambahan
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     side: const BorderSide(
@@ -510,7 +540,7 @@ class _HomePageState extends State<HomePage> {
                                         Icon(
                                           Icons
                                               .add_circle_outline, // Tampilkan ikon tambah
-                                          color: Colors.black,
+                                          // color: Colors.black,
                                         ),
                                         SizedBox(
                                             width:
@@ -519,7 +549,7 @@ class _HomePageState extends State<HomePage> {
                                           child: Text(
                                             'Add New Subject',
                                             style: TextStyle(
-                                              color: Colors.black,
+                                              // color: Colors.black,
                                             ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -548,15 +578,14 @@ class _HomePageState extends State<HomePage> {
                                     const EdgeInsets.symmetric(horizontal: 5),
                                 child: Card(
                                   color: (selectedIndexSubject == position + 1)
-                                      ? const Color.fromARGB(255, 157, 158, 251)
+                                      ? themeProvider.primaryColor
                                       : null,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     side: BorderSide(
                                       color:
                                           (selectedIndexSubject == position + 1)
-                                              ? const Color.fromARGB(
-                                                  255, 136, 146, 237)
+                                              ? darkenColor(themeProvider.primaryColor)
                                               : Colors.transparent,
                                       width: 4,
                                     ),
@@ -569,10 +598,15 @@ class _HomePageState extends State<HomePage> {
                                       Text(
                                         subjectList[position + 1],
                                         style: TextStyle(
-                                          color: (selectedIndexSubject ==
+                                          color: isDarkMode
+                                          ? (selectedIndexSubject ==
                                                   position + 1)
                                               ? Colors.white
-                                              : Colors.black,
+                                              : Colors.white
+                                          : (selectedIndexSubject ==
+                                                  position + 1)
+                                              ? Colors.white
+                                              : Colors.black
                                         ),
                                       ),
                                     ],
@@ -625,14 +659,13 @@ class _HomePageState extends State<HomePage> {
                                       5), // Tambahkan margin horizontal untuk memberikan jarak antar kartu
                               child: Card(
                                 color: (selectedIndex == position)
-                                    ? const Color.fromARGB(255, 157, 158, 251)
+                                    ? themeProvider.primaryColor
                                     : null,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
                                     color: (selectedIndex == position)
-                                        ? const Color.fromARGB(
-                                            255, 136, 146, 237)
+                                        ? darkenColor(themeProvider.primaryColor)
                                         : Colors.transparent,
                                     width: 4,
                                   ),
@@ -646,9 +679,13 @@ class _HomePageState extends State<HomePage> {
                                     Text(
                                       iconList[position].titleIcon,
                                       style: TextStyle(
-                                        color: (selectedIndex == position)
+                                        color: isDarkMode
+                                        ? (selectedIndex == position)
                                             ? Colors.white
-                                            : Colors.black,
+                                            : Colors.white
+                                        : (selectedIndex == position)
+                                            ? Colors.white
+                                            : Colors.black
                                       ),
                                     ),
                                   ],
@@ -861,13 +898,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget bottomDetailsSheet() {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return DraggableScrollableSheet(
       initialChildSize: .63,
       minChildSize: .08,
       maxChildSize: .63,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: isDarkMode 
+          ? BoxDecoration(
+            color: Color.fromARGB(255, 25, 25, 25),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(50),
+              topRight: Radius.circular(50),
+            ),
+          )
+
+          : BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(50),
@@ -894,7 +943,7 @@ class _HomePageState extends State<HomePage> {
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: const Color.fromARGB(255, 234, 240, 255),
+                    color: lightenColor(themeProvider.primaryColor)
                   ),
                   child: ListTile(
                     title: const Text(
@@ -911,8 +960,7 @@ class _HomePageState extends State<HomePage> {
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
-                            const Color.fromARGB(255, 150, 180,
-                                254)), // Mengatur warna latar belakang tombol
+                            darkenColor(themeProvider.primaryColor)), // Mengatur warna latar belakang tombol
                         minimumSize: MaterialStateProperty.all<Size>(
                             const Size(10, 30)), // Atur ukuran tombol
                       ),
@@ -934,7 +982,7 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           'Based on your activity...',
                           style: TextStyle(
-                            color: Colors.black,
+                            // color: Colors.black,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -948,9 +996,9 @@ class _HomePageState extends State<HomePage> {
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: const Color.fromARGB(255, 234, 240, 255),
+                    color: lightenColor(themeProvider.primaryColor),
                   ),
-                  child: const ListTile(
+                  child: ListTile(
                     title: Text(
                       'Recommendation',
                       style: TextStyle(color: Colors.black),
@@ -958,7 +1006,7 @@ class _HomePageState extends State<HomePage> {
                     subtitle: Text(
                       'Pomodoro method', // Teks tambahan di bawah tombol
                       style: TextStyle(
-                        color: Color.fromARGB(255, 150, 180, 254),
+                        color: darkenColor(themeProvider.primaryColor),
                         fontSize: 20,
                         fontWeight:
                             FontWeight.bold, // Atur teks menjadi sangat tebal
@@ -1020,7 +1068,7 @@ class _HomePageState extends State<HomePage> {
                         const Text(
                           'Activity History',
                           style: TextStyle(
-                            color: Colors.black,
+                            // color: Colors.black,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
