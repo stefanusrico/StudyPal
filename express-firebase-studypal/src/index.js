@@ -1,4 +1,6 @@
 const express = require("express")
+const http = require("http").createServer(app)
+const io = require("socket.io")(http)
 const cors = require("cors")
 const admin = require("firebase-admin")
 const bcrypt = require("bcrypt")
@@ -263,11 +265,120 @@ app.get("/users/:userId/accumulated-time", async (req, res) => {
   }
 })
 
+app.get("/messages", async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection("messages")
+      .orderBy("timestamp", "desc")
+      .get()
+    const messages = snapshot.docs.map((doc) => doc.data())
+    res.json(messages)
+  } catch (error) {
+    console.error("Error fetching messages from Firestore:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.get("/messages/:groupId", async (req, res) => {
+  try {
+    const { groupId } = req.params
+    const { email } = req.query
+
+    const messagesSnapshot = await db
+      .collection("group-conversations")
+      .doc(groupId)
+      .collection("messages")
+      .orderBy("sentAt", "desc")
+      .get()
+
+    const messages = []
+
+    for (const doc of messagesSnapshot.docs) {
+      const messageData = doc.data()
+      const senderId = messageData.sentBy
+
+      // Query koleksi users untuk mendapatkan firstName berdasarkan email
+      const userSnapshot = await db
+        .collection("users")
+        .where("email", "==", senderId)
+        .limit(1)
+        .get()
+
+      if (!userSnapshot.empty) {
+        const userData = userSnapshot.docs[0].data()
+        const firstName = userData.first_name
+        const lastName = userData.last_name
+
+        messageData.fullName = firstName + " " + lastName
+      }
+
+      messages.push(messageData)
+    }
+
+    res.json(messages)
+  } catch (error) {
+    console.error("Error fetching messages:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+io.on("connection", (socket) => {
+  console.log("New client connected")
+
+  socket.on("message", async (data) => {
+    try {
+      const { senderId, text } = data
+      const groupId = "group1" //hardcode nyoba dulu brok
+
+      const groupRef = db.collection("group-conversations").doc(groupId)
+      const messageData = {
+        message: text,
+        sentBy: senderId,
+        sentAt: admin.firestore.FieldValue.serverTimestamp(),
+      }
+
+      await db.runTransaction(async (transaction) => {
+        const groupDoc = await transaction.get(groupRef)
+        if (!groupDoc.exists) {
+          // Jika dokumen grup belum ada, buat dokumen baru
+          transaction.set(groupRef, {
+            groupname: "Group 1",
+            initiatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            initiatedBy: senderId,
+            lastMessage: messageData,
+            lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            participantIds: [senderId],
+          })
+        } else {
+          // Jika dokumen grup sudah ada, perbarui lastMessage dan lastUpdatedAt
+          transaction.update(groupRef, {
+            lastMessage: messageData,
+            lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          })
+        }
+
+        // Simpan pesan baru dalam subkoleksi messages
+        transaction.set(groupRef.collection("messages").doc(), messageData)
+      })
+
+      // Broadcast pesan ke semua klien yang terhubung
+      console.log("Received Message: ", data)
+      io.emit("message", { groupId, ...data })
+    } catch (error) {
+      console.error("Error saving message to Firestore:", error)
+    }
+  })
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected")
+  })
+})
+
 app.get("/test", (req, res) => {
   res.send("Hello World!")
 })
 
 const PORT = 4000
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Express API running in PORT: " + PORT)
+http.listen(PORT, "0.0.0.0", () => {
+  console.log(`Express API running in PORT: ${PORT}`)
 })
