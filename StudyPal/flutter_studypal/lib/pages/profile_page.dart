@@ -29,6 +29,12 @@ class _ProfilePageState extends State<ProfilePage> {
     fetchData(); // Panggil fungsi untuk mengambil email saat inisialisasi halaman
   }
 
+  @override
+  void dispose() {
+    // Cancel or dispose of asynchronous operations here
+    super.dispose();
+  }
+
   Future<void> _getEmailandToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -70,7 +76,8 @@ class _ProfilePageState extends State<ProfilePage> {
       await _getEmailandToken();
 
       // Pastikan email dan token tidak null
-      if (email != null && token != null) {
+      if (email != null && token != null && mounted) {
+        // Check if the widget is mounted
         // Panggil getUserProfile dengan email dan token
         Map<String, dynamic> userProfileData =
             await getUserProfile(email!, token!);
@@ -87,9 +94,12 @@ class _ProfilePageState extends State<ProfilePage> {
         debugPrint(userProfileDataString);
 
         // Tetapkan hasil getUserProfile ke userProfile
-        setState(() {
-          userProfile = userProfileData;
-        });
+        if (mounted) {
+          // Check if the widget is mounted again before calling setState
+          setState(() {
+            userProfile = userProfileData;
+          });
+        }
       } else {
         // Tangani jika email atau token null
         throw Exception('Email or token is null');
@@ -133,9 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: isDarkMode ? Colors.black : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PopupMenuButton(
@@ -234,9 +242,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: isDarkMode ? Colors.black : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PopupMenuButton(
@@ -336,7 +342,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                 horizontal: 35,
                                 vertical: 0,
                               ), // Padding untuk tombol
-                              backgroundColor: themeProvider.primaryColor, // Warna latar belakang
+                              backgroundColor: themeProvider
+                                  .primaryColor, // Warna latar belakang
                               foregroundColor: Colors.white, // Warna teks
                             ),
                             child: const Text(
@@ -415,10 +422,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: const Text(
                           'Logout',
                           style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white
-                          ),
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
                         ),
                       )
                     ],
@@ -436,7 +442,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildStatCard(String title, String value) {
     final themeProvider = Provider.of<ThemeModel>(context);
     final isDarkMode = themeProvider.isDarkMode;
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -641,5 +647,6 @@ void _logout(BuildContext context) async {
   await prefs.remove('token');
 
   // Navigasi ke halaman login atau halaman utama
-  Navigator.of(context, rootNavigator: true).pushReplacement(MaterialPageRoute(builder: (context) => new LoginPage()));
+  Navigator.of(context, rootNavigator: true).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginPage()));
 }

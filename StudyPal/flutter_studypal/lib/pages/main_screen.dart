@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:flutter_studypal/components/nav_model.dart';
@@ -16,8 +17,10 @@ import 'package:flutter_studypal/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
-  static final GlobalKey<_MainScreenState> mainScreenKey =
-      GlobalKey<_MainScreenState>();
+  static _MainScreenState? get currentState {
+    return _MainScreenState();
+  }
+
   const MainScreen({super.key});
 
   @override
@@ -25,6 +28,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  final GlobalKey<_MainScreenState> mainScreenKey =
+      GlobalKey<_MainScreenState>();
   final GlobalKey<NavigatorState> homeNavKey = GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> insightNavKey = GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> groupNavKey = GlobalKey<NavigatorState>();
@@ -50,9 +55,12 @@ class _MainScreenState extends State<MainScreen> {
   String latestSubject = '';
   String latestTime = '';
   int accumulatedTime = 0;
+  int pausedAccumulatedTime = 0;
 
   DateTime? startTime;
   DateTime? finishTime;
+
+  Map<String, int> dailyAccumulatedTime = {};
 
   // StopWatchTimer instance
   final StopWatchTimer _stopWatchTimer = StopWatchTimer(
@@ -61,6 +69,25 @@ class _MainScreenState extends State<MainScreen> {
       print('Timer Value: $value');
     },
   );
+
+  void printDailyAccumulatedTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    String key =
+        '$email:$currentDate'; // Buat kunci unik untuk user saat ini dan tanggal
+    int currentDailyAccumulatedTime = prefs.getInt(key) ?? 0;
+    print(currentDailyAccumulatedTime);
+    String formattedTime = formatDuration(currentDailyAccumulatedTime);
+    print('Daily Accumulated Time for $email on $currentDate: $formattedTime');
+  }
+
+  String formatDuration(int accumulatedTime) {
+    final duration = Duration(seconds: accumulatedTime);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
 
   void navigateToProfilePage() {
     print('Navigating to ProfilePage');
@@ -83,7 +110,7 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  Future<void> sendAccumulatedTime(
+  Future<int> sendAccumulatedTime(
       int accumulatedTime, DateTime startTime, DateTime finishTime) async {
     final url =
         Uri.parse('http://10.0.2.2:4000/users/$email/send-accumulated-time');
@@ -104,19 +131,33 @@ class _MainScreenState extends State<MainScreen> {
 
       if (response.statusCode == 200) {
         print('Accumulated time sent successfully');
+        return accumulatedTime;
       } else {
         print(
             'Failed to send accumulated time. Status code: ${response.statusCode}');
+        return 0; // Return a default value in case of failure
       }
     } catch (e) {
       print('Error sending accumulated time: $e');
+      return 0; // Return a default value in case of an exception
     }
   }
 
-  Future<void> _sendAccumulatedTime() async {
+  Future<void> _sendAccumulatedTime(int sendDurationInSeconds) async {
     await _getEmailandToken();
-    sendAccumulatedTime(
-        accumulatedTime, startTime ?? DateTime.now(), DateTime.now());
+    int sentAccumulatedTime = await sendAccumulatedTime(
+        sendDurationInSeconds, startTime ?? DateTime.now(), DateTime.now());
+
+    if (sentAccumulatedTime > 0) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      String key =
+          '$email:$currentDate'; // Buat kunci unik untuk setiap user dan tanggal
+      int currentDailyAccumulatedTime = prefs.getInt(key) ?? 0;
+      currentDailyAccumulatedTime += sentAccumulatedTime;
+      await prefs.setInt(key, currentDailyAccumulatedTime);
+    }
+    printDailyAccumulatedTime();
   }
 
   void _handleLatestStudyAdded(Map<String, dynamic> data) {
@@ -128,6 +169,17 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _getEmailandToken().then((_) {
+      SharedPreferences.getInstance().then((prefs) {
+        String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        String key =
+            '$email:$currentDate'; // Buat kunci unik untuk user saat ini dan tanggal
+        int currentDailyAccumulatedTime = prefs.getInt(key) ?? 0;
+        setState(() {
+          accumulatedTime = currentDailyAccumulatedTime;
+        });
+      });
+    });
     items = [
       NavModel(
         page: HomePage(
@@ -181,53 +233,55 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   List<SpeedDialChild> _getSpeedDialChildren() {
-  final themeProvider = Provider.of<ThemeModel>(context);
-  final isDarkMode = themeProvider.isDarkMode;
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
     if (timerStarted && timerRunning) {
       return [
         SpeedDialChild(
-          child: Icon(Icons.pause,
-              color: themeProvider.primaryColor),
+          child: Icon(Icons.pause, color: themeProvider.primaryColor),
           label: 'Pause',
           onTap: () {
             _stopWatchTimer.onStopTimer();
             _timerValueNotifier.value = _stopWatchTimer.rawTime.value;
             _timerStreamController.add(_stopWatchTimer.rawTime.value);
+
+            int durationInMillis =
+                _stopWatchTimer.rawTime.value - pausedAccumulatedTime;
+            int durationInSeconds = (durationInMillis / 1000).floor();
             setState(() {
               timerRunning = false;
               isTimerRunning = false;
-              accumulatedTime += _stopWatchTimer
-                  .rawTime.value; // Tambahkan waktu saat ini ke accumulatedTime
-              _accumulatedTimeNotifier.value = accumulatedTime;
+              pausedAccumulatedTime = _stopWatchTimer.rawTime.value;
               finishTime = DateTime.now();
               debugPrint('Adding data to latestStudyList');
               debugPrint('Subject: $selectedSubject');
             });
-            _sendAccumulatedTime();
-            // (items[selectedTab].page as HomePage).addToLatestStudyList(
-            //   {
-            //     'subject': selectedSubject,
-            //     'time': 'Paused ${DateTime.now().toString().substring(0, 16)}',
-            //   },
-            // );
+            int sendDurationInSeconds = (pausedAccumulatedTime / 1000)
+                .floor(); // Hitung durasi dalam detik
+            _sendAccumulatedTime(sendDurationInSeconds);
           },
         ),
       ];
     } else if (timerStarted && !timerRunning) {
       return [
         SpeedDialChild(
-          child: Icon(Icons.play_arrow_rounded,
-              color: themeProvider.primaryColor),
+          child:
+              Icon(Icons.play_arrow_rounded, color: themeProvider.primaryColor),
           label: 'Resume',
           onTap: () {
             _stopWatchTimer.onStartTimer();
             _stopWatchTimer.rawTime.listen((value) {
               _timerStreamController.add(value);
             });
+
             setState(() {
               timerRunning = true;
               isTimerRunning = true;
+              startTime = DateTime.now();
             });
+
+            // int durationInSeconds = (pausedAccumulatedTime / 1000).floor();
+            // _sendAccumulatedTime(durationInSeconds);
           },
         ),
         SpeedDialChild(
@@ -248,8 +302,7 @@ class _MainScreenState extends State<MainScreen> {
       if (selectedSubject.isEmpty || selectedMethod.isEmpty) {
         return [
           SpeedDialChild(
-            child: Icon(Icons.timer,
-                color: themeProvider.primaryColor),
+            child: Icon(Icons.timer, color: themeProvider.primaryColor),
             label: 'Timer Start',
             onTap: () {
               // Show an alert dialog
@@ -277,8 +330,7 @@ class _MainScreenState extends State<MainScreen> {
       } else {
         return [
           SpeedDialChild(
-            child: Icon(Icons.timer,
-                color: themeProvider.primaryColor),
+            child: Icon(Icons.timer, color: themeProvider.primaryColor),
             label: 'Timer start',
             onTap: () {
               _stopWatchTimer.onStartTimer();
@@ -306,77 +358,81 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   @override
-Widget build(BuildContext context) {
-  final themeProvider = Provider.of<ThemeModel>(context);
-  final isDarkMode = themeProvider.isDarkMode;
-  print('Current selectedTab: $selectedTab');
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+    print('Current selectedTab: $selectedTab');
 
-  return WillPopScope(
-    onWillPop: () {
-      if (items[selectedTab].navKey.currentState?.canPop() ?? false) {
-        items[selectedTab].navKey.currentState?.pop();
-        return Future.value(false);
-      } else {
-        return Future.value(true);
-      }
-    },
-    child: Scaffold(
-      key: MainScreen.mainScreenKey,
-      body: IndexedStack(
-        index: selectedTab,
-        children: items.map((page) {
-          return Navigator(
-            key: page.navKey,
-            onGenerateInitialRoutes: (navigator, initialRoute) {
-              return [
-                MaterialPageRoute(
-                  builder: (context) => page.page,
-                ),
-              ];
-            },
-          );
-        }).toList(),
+    return WillPopScope(
+      onWillPop: () {
+        if (items[selectedTab].navKey.currentState?.canPop() ?? false) {
+          items[selectedTab].navKey.currentState?.pop();
+          return Future.value(false);
+        } else {
+          return Future.value(true);
+        }
+      },
+      child: Scaffold(
+        key: mainScreenKey,
+        body: IndexedStack(
+          index: selectedTab,
+          children: items.map((page) {
+            return Navigator(
+              key: page.navKey,
+              onGenerateInitialRoutes: (navigator, initialRoute) {
+                return [
+                  MaterialPageRoute(
+                    builder: (context) => page.page,
+                  ),
+                ];
+              },
+            );
+          }).toList(),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: SpeedDial(
+          icon: timerStarted
+              ? (timerRunning ? Icons.pause : Icons.play_arrow_rounded)
+              : Icons.timer_outlined,
+          activeIcon: Icons.close,
+          foregroundColor: Colors.white,
+          backgroundColor: timerStarted
+              ? (timerRunning
+                  ? themeProvider.primaryColor
+                  : themeProvider.primaryColor)
+              : themeProvider.primaryColor,
+          overlayOpacity: 0.5, // Transparansi overlay saat SpeedDial aktif
+          children: _getSpeedDialChildren(),
+        ),
+        bottomNavigationBar: AnimatedBottomNavigationBar(
+          icons: const [
+            Icons.home_outlined,
+            Icons.insert_chart_outlined_rounded,
+            Icons.group_outlined,
+            Icons.person_outline,
+          ],
+          activeIndex: selectedTab,
+          gapLocation: GapLocation.center,
+          notchSmoothness: NotchSmoothness.softEdge,
+          onTap: (index) {
+            if (index == selectedTab) {
+              items[index]
+                  .navKey
+                  .currentState
+                  ?.popUntil((route) => route.isFirst);
+            } else {
+              setState(() {
+                selectedTab = index;
+              });
+            }
+          },
+          activeColor: themeProvider.primaryColor,
+          inactiveColor: Colors.grey,
+          backgroundColor: isDarkMode
+              ? Colors.black
+              : Colors.white, // Ubah warna latar belakang berdasarkan mode
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: SpeedDial(
-        icon: timerStarted
-            ? (timerRunning ? Icons.pause : Icons.play_arrow_rounded)
-            : Icons.timer_outlined,
-        activeIcon: Icons.close,
-        foregroundColor: Colors.white,
-        backgroundColor: timerStarted
-            ? (timerRunning
-                ? themeProvider.primaryColor
-                : themeProvider.primaryColor)
-            : themeProvider.primaryColor,
-        overlayOpacity: 0.5, // Transparansi overlay saat SpeedDial aktif
-        children: _getSpeedDialChildren(),
-      ),
-      bottomNavigationBar: AnimatedBottomNavigationBar(
-        icons: const [
-          Icons.home_outlined,
-          Icons.insert_chart_outlined_rounded,
-          Icons.group_outlined,
-          Icons.person_outline,
-        ],
-        activeIndex: selectedTab,
-        gapLocation: GapLocation.center,
-        notchSmoothness: NotchSmoothness.softEdge,
-        onTap: (index) {
-          if (index == selectedTab) {
-            items[index].navKey.currentState?.popUntil((route) => route.isFirst);
-          } else {
-            setState(() {
-              selectedTab = index;
-            });
-          }
-        },
-        activeColor: themeProvider.primaryColor,
-        inactiveColor: Colors.grey,
-        backgroundColor: isDarkMode ? Colors.black : Colors.white, // Ubah warna latar belakang berdasarkan mode
-      ),
-    ),
-  );
-}
-
+    );
+  }
 }
