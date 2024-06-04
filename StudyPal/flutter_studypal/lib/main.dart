@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_studypal/pages/auth/login_page.dart';
-import 'package:flutter_studypal/pages/chat_screen.dart';
 import 'package:flutter_studypal/pages/main_screen.dart';
-import 'package:flutter_studypal/pages/onboarding_page.dart';
-import 'package:flutter_studypal/pages/auth/register_page.dart';
-import 'package:flutter_studypal/pages/auth/register_page2.dart';
 import 'package:flutter_studypal/pages/splash_page.dart';
+import 'package:flutter_studypal/pages/auth/login_page.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_studypal/utils/theme_provider.dart';  // Pastikan ini diimpor dengan benar
+import 'package:flutter_studypal/utils/theme_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+  bool isLoggedIn = token != null;
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeModel(),
-      child: MyApp(),
+      child: MyApp(isLoggedIn: isLoggedIn),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +35,11 @@ class MyApp extends StatelessWidget {
             primaryColor: theme.primaryColor,
             brightness: theme.isDarkMode ? Brightness.dark : Brightness.light,
           ),
-          initialRoute: '/',
+          initialRoute: isLoggedIn ? '/home' : '/',
           routes: {
             '/': (context) => const SplashPage(),
             '/home': (context) => const MainScreen(),
-            '/onboarding': (context) => const Onboarding(),
-            '/register': (context) => const RegisterPage(),
             '/login': (context) => const LoginPage(),
-            '/chat': (context) => const ChatPage(),
           },
         );
       },

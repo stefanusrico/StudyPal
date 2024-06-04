@@ -107,6 +107,11 @@ class _HomePageState extends State<HomePage> {
     selectedMethod = widget.selectedMethod;
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   String getSelectedSubject() {
     return selectedSubject;
   }
@@ -175,15 +180,19 @@ class _HomePageState extends State<HomePage> {
       await _getEmailandToken();
 
       // Pastikan email dan token tidak null
-      if (email != null && token != null) {
+      if (email != null && token != null && mounted) {
+        // Check if the widget is mounted
         // Panggil getUserProfile dengan email dan token
         Map<String, dynamic> userProfileData =
             await getUserProfile(email!, token!);
 
         // Tetapkan hasil getUserProfile ke userProfile
-        setState(() {
-          userProfile = userProfileData;
-        });
+        if (mounted) {
+          // Check if the widget is mounted again before calling setState
+          setState(() {
+            userProfile = userProfileData;
+          });
+        }
       } else {
         // Tangani jika email atau token null
         throw Exception('Email or token is null');
@@ -219,7 +228,10 @@ class _HomePageState extends State<HomePage> {
                 end: Alignment.bottomRight,
                 colors: isDarkMode
                     ? [Colors.black, Colors.black54]
-                    : [darkenColor(themeProvider.primaryColor), lightenColor(themeProvider.primaryColor),],
+                    : [
+                        darkenColor(themeProvider.primaryColor),
+                        lightenColor(themeProvider.primaryColor),
+                      ],
               ),
             ),
             child: Stack(
@@ -238,9 +250,8 @@ class _HomePageState extends State<HomePage> {
                                 width: 45,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                                  color:
+                                      isDarkMode ? Colors.black : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: PopupMenuButton(
@@ -270,9 +281,9 @@ class _HomePageState extends State<HomePage> {
                                         print(
                                             'Calling navigateToProfilePage()');
                                         final mainScreenState = MainScreen
-                                            .mainScreenKey.currentState;
-                                        mainScreenState
-                                            ?.navigateToProfilePage();
+                                            .currentState
+                                            ?.mainScreenKey
+                                            .currentState;
                                         print(mainScreenState);
                                       },
                                     ),
@@ -356,9 +367,8 @@ class _HomePageState extends State<HomePage> {
                                 width: 45,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                                  color:
+                                      isDarkMode ? Colors.black : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: PopupMenuButton(
@@ -541,8 +551,8 @@ class _HomePageState extends State<HomePage> {
                                           child: Text(
                                             'Add New Subject',
                                             style: TextStyle(
-                                              // color: Colors.black,
-                                            ),
+                                                // color: Colors.black,
+                                                ),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -577,7 +587,8 @@ class _HomePageState extends State<HomePage> {
                                     side: BorderSide(
                                       color:
                                           (selectedIndexSubject == position + 1)
-                                              ? darkenColor(themeProvider.primaryColor)
+                                              ? darkenColor(
+                                                  themeProvider.primaryColor)
                                               : Colors.transparent,
                                       width: 4,
                                     ),
@@ -590,16 +601,15 @@ class _HomePageState extends State<HomePage> {
                                       Text(
                                         subjectList[position + 1],
                                         style: TextStyle(
-                                          color: isDarkMode
-                                          ? (selectedIndexSubject ==
-                                                  position + 1)
-                                              ? Colors.white
-                                              : Colors.white
-                                          : (selectedIndexSubject ==
-                                                  position + 1)
-                                              ? Colors.white
-                                              : Colors.black
-                                        ),
+                                            color: isDarkMode
+                                                ? (selectedIndexSubject ==
+                                                        position + 1)
+                                                    ? Colors.white
+                                                    : Colors.white
+                                                : (selectedIndexSubject ==
+                                                        position + 1)
+                                                    ? Colors.white
+                                                    : Colors.black),
                                       ),
                                     ],
                                   ),
@@ -657,7 +667,8 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
                                     color: (selectedIndex == position)
-                                        ? darkenColor(themeProvider.primaryColor)
+                                        ? darkenColor(
+                                            themeProvider.primaryColor)
                                         : Colors.transparent,
                                     width: 4,
                                   ),
@@ -671,14 +682,13 @@ class _HomePageState extends State<HomePage> {
                                     Text(
                                       iconList[position].titleIcon,
                                       style: TextStyle(
-                                        color: isDarkMode
-                                        ? (selectedIndex == position)
-                                            ? Colors.white
-                                            : Colors.white
-                                        : (selectedIndex == position)
-                                            ? Colors.white
-                                            : Colors.black
-                                      ),
+                                          color: isDarkMode
+                                              ? (selectedIndex == position)
+                                                  ? Colors.white
+                                                  : Colors.white
+                                              : (selectedIndex == position)
+                                                  ? Colors.white
+                                                  : Colors.black),
                                     ),
                                   ],
                                 ),
@@ -901,22 +911,21 @@ class _HomePageState extends State<HomePage> {
       maxChildSize: .63,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
-          decoration: isDarkMode 
-          ? BoxDecoration(
-            color: Color.fromARGB(255, 25, 25, 25),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
-            ),
-          )
-
-          : BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
-            ),
-          ),
+          decoration: isDarkMode
+              ? const BoxDecoration(
+                  color: Color.fromARGB(255, 25, 25, 25),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
+                  ),
+                )
+              : const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
+                  ),
+                ),
           child: SingleChildScrollView(
             // Menggunakan SingleChildScrollView sebagai ganti ListView
             controller: scrollController,
@@ -936,9 +945,8 @@ class _HomePageState extends State<HomePage> {
                   width: MediaQuery.of(context).size.width * 0.85,
                   margin: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: lightenColor(themeProvider.primaryColor)
-                  ),
+                      borderRadius: BorderRadius.circular(20),
+                      color: lightenColor(themeProvider.primaryColor)),
                   child: ListTile(
                     title: const Text(
                       'Today target',
@@ -954,7 +962,8 @@ class _HomePageState extends State<HomePage> {
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
-                            darkenColor(themeProvider.primaryColor)), // Mengatur warna latar belakang tombol
+                            darkenColor(themeProvider
+                                .primaryColor)), // Mengatur warna latar belakang tombol
                         minimumSize: MaterialStateProperty.all<Size>(
                             const Size(10, 30)), // Atur ukuran tombol
                       ),
@@ -993,7 +1002,7 @@ class _HomePageState extends State<HomePage> {
                     color: lightenColor(themeProvider.primaryColor),
                   ),
                   child: ListTile(
-                    title: Text(
+                    title: const Text(
                       'Recommendation',
                       style: TextStyle(color: Colors.black),
                     ),
