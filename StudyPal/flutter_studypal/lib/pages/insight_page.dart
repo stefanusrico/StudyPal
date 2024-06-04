@@ -65,7 +65,6 @@ class _InsightPageState extends State<InsightPage> {
           final data = json.decode(response.body);
           debugPrint('Data received from API: $data');
           if (mounted) {
-            // Check if the widget is mounted again
             setState(() {
               accumulatedTimeData = data;
             });
