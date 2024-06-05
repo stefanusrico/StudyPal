@@ -340,7 +340,6 @@ io.on("connection", (socket) => {
       await db.runTransaction(async (transaction) => {
         const groupDoc = await transaction.get(groupRef)
         if (!groupDoc.exists) {
-          // Jika dokumen grup belum ada, buat dokumen baru
           transaction.set(groupRef, {
             groupname: "Group 1",
             initiatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -357,11 +356,9 @@ io.on("connection", (socket) => {
           })
         }
 
-        // Simpan pesan baru dalam subkoleksi messages
         transaction.set(groupRef.collection("messages").doc(), messageData)
       })
 
-      // Broadcast pesan ke semua klien yang terhubung
       console.log("Received Message: ", data)
       io.emit("message", { groupId, ...data })
     } catch (error) {
@@ -372,6 +369,53 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected")
   })
+})
+
+app.put("/users/:email", async (req, res) => {
+  try {
+    const { email } = req.params
+    const { first_name, last_name, birth_date } = req.body
+
+    const userRef = db.collection("users").doc(email)
+
+    const userDoc = await userRef.get()
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" })
+    }
+
+    await userRef.update({
+      first_name,
+      last_name,
+      birth_date,
+    })
+
+    res.status(200).json({ message: "Profile updated successfully" })
+  } catch (error) {
+    console.error("Error updating profile:", error)
+    res.status(500).json({ error: "Failed to update profile" })
+  }
+})
+
+app.get("/users/:email", async (req, res) => {
+  try {
+    const { email } = req.params
+
+    const userRef = db.collection("users").doc(email)
+    const userDoc = await userRef.get()
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" })
+    }
+
+    const { first_name, last_name, birth_date } = userDoc.data()
+    const fullName = `${first_name} ${last_name}`
+
+    res.status(200).json({ fullName, birth_date })
+  } catch (error) {
+    console.error("Error fetching user data:", error)
+    res.status(500).json({ error: "Failed to fetch user data" })
+  }
 })
 
 app.get("/test", (req, res) => {
