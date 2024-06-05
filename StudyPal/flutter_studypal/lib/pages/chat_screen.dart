@@ -30,14 +30,18 @@ class _ChatPageState extends State<ChatPage> {
     id: '82091008-a484-4a89-ae75-a22bf8d6f3ac',
   );
   late IO.Socket socket;
+  Future<void>? _loadMessagesFuture;
 
   @override
   void initState() {
     super.initState();
-    _getEmailandToken().then((_) {
-      initSocket();
-      loadMessagesFromBackend('group1', email!);
-    });
+    _loadMessagesFuture = _loadMessages();
+  }
+
+  Future<void> _loadMessages() async {
+    await _getEmailandToken();
+    initSocket();
+    await loadMessagesFromBackend('group1', email!);
   }
 
   @override
@@ -54,7 +58,6 @@ class _ChatPageState extends State<ChatPage> {
 
     socket.connect();
 
-    // Tambahkan penanganan event Socket.IO di sini
     socket.onConnect((data) => print('Connected'));
     socket.onDisconnect((data) => print('Disconnected'));
     socket.on('newMessage', (data) {
@@ -65,7 +68,6 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _getEmailandToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      // Set nilai email dari SharedPreferences ke variabel email
       email = prefs.getString('email');
       token = prefs.getString('token');
     });
@@ -79,7 +81,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void handleIncomingMessage(dynamic data) {
     final message = types.TextMessage(
-      author: types.User(id: data['sender']),
+      author: data['sender'] == email ? _user : types.User(id: data['sender']),
       createdAt: DateTime.now().millisecondsSinceEpoch,
       id: const Uuid().v4(),
       text: data['text'],
@@ -283,8 +285,11 @@ class _ChatPageState extends State<ChatPage> {
           }
 
           return types.TextMessage(
-            author: types.User(
-                id: messageData['sentBy'], firstName: messageData['fullName']),
+            author: messageData['sentBy'] == email
+                ? _user
+                : types.User(
+                    id: messageData['sentBy'],
+                    firstName: messageData['fullName']),
             createdAt: createdAtMillis ?? DateTime.now().millisecondsSinceEpoch,
             id: const Uuid().v4(),
             text: messageData['message'],
@@ -329,25 +334,16 @@ class _ChatPageState extends State<ChatPage> {
             actions: [
               IconButton(
                 icon: const Icon(Icons.more_vert),
-                onPressed: () {
-                  
-                },
+                onPressed: () {},
               ),
             ],
           ),
-          body: StreamBuilder<List<types.Message>>(
-            stream:
-                Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
-              if (email != null) {
-                await loadMessagesFromBackend('group1', email!);
-              }
-              return _messages;
-            }),
+          body: FutureBuilder<void>(
+            future: _loadMessagesFuture,
             builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final messages = snapshot.data!;
+              if (snapshot.connectionState == ConnectionState.done) {
                 return Chat(
-                  messages: messages,
+                  messages: _messages,
                   onAttachmentPressed: handleAttachmentPressed,
                   onMessageTap: handleMessageTap,
                   onPreviewDataFetched: handlePreviewDataFetched,

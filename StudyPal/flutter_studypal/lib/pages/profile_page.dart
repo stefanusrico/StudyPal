@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/pages/auth/login_page.dart';
+import 'package:flutter_studypal/pages/edit_profile.dart';
 import 'package:intl/intl.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
@@ -297,7 +298,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      // Baris pertama: Profil dengan ikon, nama, dan tombol edit
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -330,29 +330,40 @@ class _ProfilePageState extends State<ProfilePage> {
                               ],
                             ),
                           ),
-                          // Tombol Edit dengan border circle
                           ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    20), // Sudut melengkung
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 35,
+                                  vertical: 0,
+                                ),
+                                backgroundColor: themeProvider
+                                    .primaryColor, // Warna latar belakang
+                                foregroundColor: Colors.white, // Warna teks
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 35,
-                                vertical: 0,
-                              ), // Padding untuk tombol
-                              backgroundColor: themeProvider
-                                  .primaryColor, // Warna latar belakang
-                              foregroundColor: Colors.white, // Warna teks
-                            ),
-                            child: const Text(
-                              'Edit',
-                              style: TextStyle(
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
+                              child: SizedBox(
+                                width: 50,
+                                height: 40, // Atur lebar sesuai kebutuhan
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const EditProfilePage(), // Arahkan ke SettingsPage
+                                        ));
+                                  },
+                                  child: const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ))
                         ],
                       ),
                       const SizedBox(
