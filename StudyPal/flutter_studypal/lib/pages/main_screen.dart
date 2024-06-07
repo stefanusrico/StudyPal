@@ -12,6 +12,7 @@ import 'home_page.dart';
 import 'insight_page.dart';
 import 'group_page.dart';
 import 'profile_page.dart';
+import 'joined_groups_page.dart';
 import 'package:flutter_studypal/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -150,7 +151,7 @@ class _MainScreenState extends State<MainScreen> {
         navKey: insightNavKey,
       ),
       NavModel(
-        page: const GroupPage(),
+        page: JoinedGroupsPage(),
         navKey: groupNavKey,
       ),
       NavModel(

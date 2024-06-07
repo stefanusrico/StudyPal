@@ -96,7 +96,10 @@ class _HomePageState extends State<HomePage> {
   String? email;
   String? token;
   Map<String, dynamic>? userProfile;
-  final List<Map<String, dynamic>> _latestStudyList = [];
+  final List<Map<String, dynamic>> _latestStudyList = [
+    {'subject': 'Math', 'time': '10:00 AM'},
+    {'subject': 'Science', 'time': '11:00 AM'},
+  ];
   int accumulatedTime = 0;
 
   @override
@@ -1082,69 +1085,72 @@ class _HomePageState extends State<HomePage> {
                 if (_latestStudyList.isNotEmpty)
                   Column(
                     children: _latestStudyList.map((data) {
-                      return Container(
-                        width: MediaQuery.of(context).size.width * 0.85,
-                        height: 75,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.3),
-                              spreadRadius: 1,
-                              blurRadius: 5,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircleAvatar(
-                                radius: 25,
-                                backgroundColor: Colors.grey,
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust the vertical spacing as needed
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.85,
+                          height: 75,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: isDarkMode ? Colors.black : Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.3),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircleAvatar(
+                                  radius: 25,
+                                  backgroundColor: Colors.grey,
+                                  child: Icon(
+                                    Icons.book,
+                                    size: 32,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        data['subject'],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        data['time'],
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
                                 child: Icon(
-                                  Icons.book,
-                                  size: 32,
-                                  color: Colors.white,
+                                  Icons.more_vert,
+                                  color: Colors.grey,
                                 ),
                               ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      data['subject'],
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      data['time'],
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Icon(
-                                Icons.more_vert,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }).toList(),

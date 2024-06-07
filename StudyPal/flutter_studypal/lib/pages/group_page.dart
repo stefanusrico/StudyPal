@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
-import 'settings_page.dart';
 import 'package:flutter_studypal/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +20,8 @@ Color darkenColor(Color color, [double amount = 0.1]) {
 
 
 class GroupPage extends StatefulWidget {
-  const GroupPage({super.key});
+  final Map<String, String> group;
+  const GroupPage({super.key, required this.group});
 
   @override
   State<GroupPage> createState() => _GroupPageState();
@@ -52,6 +52,23 @@ class _GroupPageState extends State<GroupPage> {
       theme: isDarkMode ? ThemeData.dark() : ThemeData.light(),
       home: SafeArea(
         child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              widget.group['name']!,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            centerTitle: true,
+            leadingWidth: 56,
+          ),
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -67,168 +84,6 @@ class _GroupPageState extends State<GroupPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(17, 16, 17, 0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 45,
-                                height: 45,
-                                decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: PopupMenuButton(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  // color: Colors.white, // Background color of the dropdown
-                                  icon: const Icon(
-                                    Icons.menu,
-                                    // color: Colors.black,
-                                  ),
-                                  itemBuilder: (BuildContext context) =>
-                                      <PopupMenuEntry>[
-                                    const PopupMenuItem(
-                                      value: 'menu1',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons
-                                              .person), // Tambahkan ikon di sebelah kiri teks
-                                          SizedBox(
-                                              width:
-                                                  10), // Beri jarak antara ikon dan teks
-                                          Text('John Doe'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'menu2',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons
-                                              .logout_rounded), // Tambahkan ikon
-                                          SizedBox(width: 10),
-                                          Text('Sign Out'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuDivider(
-                                        height: 1), // Garis pembatas
-                                    const PopupMenuItem(
-                                      value: 'menu3',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.settings), // Ikon tambahan
-                                          SizedBox(width: 10),
-                                          Text('Settings'),
-                                        ],
-                                      ),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'menu4',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.help), // Ikon tambahan
-                                          SizedBox(width: 10),
-                                          Text('Help'),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                  onSelected: (value) {
-                                    // Handle menu item selection here
-                                    switch (value) {
-                                      case 'menu1':
-                                        // Tambahkan logika menu 1
-                                        break;
-                                      case 'menu2':
-                                        // Tambahkan logika menu 2
-                                        break;
-                                      case 'menu3':
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const SettingsPage(), // Arahkan ke SettingsPage
-                                          ),
-                                        );
-                                        break;
-                                      case 'menu4':
-                                        // Tambahkan logika menu 4
-                                        break;
-                                      // Add cases for more menu items as needed
-                                    }
-                                  },
-                                ),
-                              ),
-                              const Text(
-                                "Group",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Container(
-                                width: 45,
-                                height: 45,
-                                decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: PopupMenuButton(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  // color: Colors.white, // Background color of the dropdown
-                                  icon: const Icon(
-                                    Icons.notifications_outlined,
-                                    // color: Colors.black,
-                                  ),
-                                  itemBuilder: (BuildContext context) =>
-                                      <PopupMenuEntry>[
-                                    const PopupMenuItem(
-                                      value: 'notification1',
-                                      child: Text('Notifications'),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'notification2',
-                                      child: Text('Challenges'),
-                                    ),
-                                    // Add more PopupMenuItems as needed
-                                  ],
-                                  onSelected: (value) {
-                                    // Handle notification selection here
-                                    switch (value) {
-                                      case 'notification1':
-                                        // Navigator.push(
-                                        // context,
-                                        // MaterialPageRoute(builder: (context) => NotificationPage1()),
-                                        // );
-                                        break;
-                                      case 'notification2':
-                                        // Navigator.push(
-                                        // context,
-                                        // MaterialPageRoute(builder: (context) => NotificationPage2()),
-                                        // );
-                                        break;
-                                      // Add cases for more notifications as needed
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 0,
                           10), // Kurangi jarak untuk lebih dekat dengan grid
@@ -455,7 +310,7 @@ class _GroupPageState extends State<GroupPage> {
     return DraggableScrollableSheet(
       initialChildSize: .63,
       minChildSize: .08,
-      maxChildSize: .63,
+      maxChildSize: .70,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
           decoration: isDarkMode 
