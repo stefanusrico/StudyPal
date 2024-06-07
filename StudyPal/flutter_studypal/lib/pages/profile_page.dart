@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/pages/auth/login_page.dart';
+import 'package:flutter_studypal/pages/edit_profile.dart';
 import 'package:intl/intl.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
@@ -27,6 +28,12 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     fetchData(); // Panggil fungsi untuk mengambil email saat inisialisasi halaman
+  }
+
+  @override
+  void dispose() {
+    // Cancel or dispose of asynchronous operations here
+    super.dispose();
   }
 
   Future<void> _getEmailandToken() async {
@@ -70,7 +77,8 @@ class _ProfilePageState extends State<ProfilePage> {
       await _getEmailandToken();
 
       // Pastikan email dan token tidak null
-      if (email != null && token != null) {
+      if (email != null && token != null && mounted) {
+        // Check if the widget is mounted
         // Panggil getUserProfile dengan email dan token
         Map<String, dynamic> userProfileData =
             await getUserProfile(email!, token!);
@@ -87,9 +95,12 @@ class _ProfilePageState extends State<ProfilePage> {
         debugPrint(userProfileDataString);
 
         // Tetapkan hasil getUserProfile ke userProfile
-        setState(() {
-          userProfile = userProfileData;
-        });
+        if (mounted) {
+          // Check if the widget is mounted again before calling setState
+          setState(() {
+            userProfile = userProfileData;
+          });
+        }
       } else {
         // Tangani jika email atau token null
         throw Exception('Email or token is null');
@@ -133,9 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: isDarkMode ? Colors.black : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PopupMenuButton(
@@ -234,9 +243,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             width: 45,
                             height: 45,
                             decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: isDarkMode ? Colors.black : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PopupMenuButton(
@@ -291,7 +298,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      // Baris pertama: Profil dengan ikon, nama, dan tombol edit
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -324,28 +330,40 @@ class _ProfilePageState extends State<ProfilePage> {
                               ],
                             ),
                           ),
-                          // Tombol Edit dengan border circle
                           ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    20), // Sudut melengkung
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 35,
+                                  vertical: 0,
+                                ),
+                                backgroundColor: themeProvider
+                                    .primaryColor, // Warna latar belakang
+                                foregroundColor: Colors.white, // Warna teks
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 35,
-                                vertical: 0,
-                              ), // Padding untuk tombol
-                              backgroundColor: themeProvider.primaryColor, // Warna latar belakang
-                              foregroundColor: Colors.white, // Warna teks
-                            ),
-                            child: const Text(
-                              'Edit',
-                              style: TextStyle(
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
+                              child: SizedBox(
+                                width: 50,
+                                height: 40, // Atur lebar sesuai kebutuhan
+                                child: TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const EditProfilePage(), // Arahkan ke SettingsPage
+                                        ));
+                                  },
+                                  child: const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ))
                         ],
                       ),
                       const SizedBox(
@@ -415,10 +433,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: const Text(
                           'Logout',
                           style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white
-                          ),
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
                         ),
                       )
                     ],
@@ -436,7 +453,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildStatCard(String title, String value) {
     final themeProvider = Provider.of<ThemeModel>(context);
     final isDarkMode = themeProvider.isDarkMode;
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -641,5 +658,6 @@ void _logout(BuildContext context) async {
   await prefs.remove('token');
 
   // Navigasi ke halaman login atau halaman utama
-  Navigator.of(context, rootNavigator: true).pushReplacement(MaterialPageRoute(builder: (context) => new LoginPage()));
+  Navigator.of(context, rootNavigator: true).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginPage()));
 }

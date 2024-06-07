@@ -18,7 +18,6 @@ Color darkenColor(Color color, [double amount = 0.1]) {
   return hslDark.toColor();
 }
 
-
 class GroupPage extends StatefulWidget {
   final Map<String, String> group;
   const GroupPage({super.key, required this.group});
@@ -76,7 +75,10 @@ class _GroupPageState extends State<GroupPage> {
                 end: Alignment.bottomRight,
                 colors: isDarkMode
                     ? [Colors.black, Colors.black54]
-                    : [darkenColor(themeProvider.primaryColor), lightenColor(themeProvider.primaryColor),],
+                    : [
+                        darkenColor(themeProvider.primaryColor),
+                        lightenColor(themeProvider.primaryColor),
+                      ],
               ),
             ),
             child: Stack(
@@ -93,13 +95,15 @@ class _GroupPageState extends State<GroupPage> {
                             const TextSpan(
                               text: 'Studying ',
                               style: TextStyle(
-                                  color: Colors.white), // Warna untuk teks "Studying"
+                                  color: Colors
+                                      .white), // Warna untuk teks "Studying"
                             ),
                             TextSpan(
                               text:
                                   '$onlineCount member${onlineCount > 1 ? "s" : ""}', // Tambahkan "s" jika lebih dari satu
                               style: TextStyle(
-                                color: darkenColor(darkenColor(themeProvider.primaryColor)), // Warna untuk teks jumlah member
+                                color: darkenColor(darkenColor(themeProvider
+                                    .primaryColor)), // Warna untuk teks jumlah member
                               ),
                             ),
                           ],
@@ -125,10 +129,10 @@ class _GroupPageState extends State<GroupPage> {
                             if (itemIndex >= totalItems) {
                               return const SizedBox.shrink();
                             }
-      
-                            bool isOnline =
-                                onlineStatus[itemIndex]; // Status online pengguna
-      
+
+                            bool isOnline = onlineStatus[
+                                itemIndex]; // Status online pengguna
+
                             return Card(
                               elevation: 2,
                               shape: RoundedRectangleBorder(
@@ -136,17 +140,18 @@ class _GroupPageState extends State<GroupPage> {
                                 side: BorderSide(
                                   color: isOnline
                                       ? darkenColor(themeProvider.primaryColor)
-                                      : isDarkMode 
-                                        ? Colors.black
-                                        : Color.fromARGB(0, 255, 255, 255),
+                                      : isDarkMode
+                                          ? Colors.black
+                                          : const Color.fromARGB(
+                                              0, 255, 255, 255),
                                   width: isOnline ? 4 : 0,
                                 ),
                               ),
                               color: isOnline
                                   ? themeProvider.primaryColor
-                                  : isDarkMode 
-                                        ? Color.fromARGB(255, 23, 23, 23)
-                                        : Colors.white,
+                                  : isDarkMode
+                                      ? const Color.fromARGB(255, 23, 23, 23)
+                                      : Colors.white,
                               child: InkWell(
                                 onTap: () {
                                   // Aksi saat kartu ditekan
@@ -224,7 +229,7 @@ class _GroupPageState extends State<GroupPage> {
                                   }
                                 : null, // Jika halaman pertama, tombol dinonaktifkan
                           ),
-      
+
                           // Tombol angka-angka halaman
                           for (int i = 1; i <= totalPages; i++)
                             Padding(
@@ -245,10 +250,13 @@ class _GroupPageState extends State<GroupPage> {
                                   backgroundColor:
                                       MaterialStateProperty.all<Color>(
                                     currentPage == i
-                                        ? themeProvider.primaryColor // Warna tombol saat halaman aktif
-                                        : isDarkMode 
-                                            ? Color.fromARGB(255, 23, 23, 23)
-                                            : Colors.white, // Warna tombol saat halaman tidak aktif
+                                        ? themeProvider
+                                            .primaryColor // Warna tombol saat halaman aktif
+                                        : isDarkMode
+                                            ? const Color.fromARGB(
+                                                255, 23, 23, 23)
+                                            : Colors
+                                                .white, // Warna tombol saat halaman tidak aktif
                                   ),
                                   shape: MaterialStateProperty.all<
                                       RoundedRectangleBorder>(
@@ -256,8 +264,9 @@ class _GroupPageState extends State<GroupPage> {
                                       borderRadius: BorderRadius.circular(8),
                                       side: BorderSide(
                                         color: currentPage == i
-                                            ? darkenColor(themeProvider.primaryColor)// Border jika halaman aktif
-                                            : isDarkMode 
+                                            ? darkenColor(themeProvider
+                                                .primaryColor) // Border jika halaman aktif
+                                            : isDarkMode
                                                 ? Colors.black
                                                 : Colors.white,
                                         width: currentPage == i
@@ -277,7 +286,7 @@ class _GroupPageState extends State<GroupPage> {
                                 ),
                               ),
                             ),
-      
+
                           IconButton(
                             icon: const Icon(Icons.chevron_right_rounded,
                                 color: Colors.white),
@@ -313,22 +322,21 @@ class _GroupPageState extends State<GroupPage> {
       maxChildSize: .70,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
-          decoration: isDarkMode 
-          ? BoxDecoration(
-            color: Color.fromARGB(255, 25, 25, 25),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
-            ),
-          )
-
-          : BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
-            ),
-          ),
+          decoration: isDarkMode
+              ? const BoxDecoration(
+                  color: Color.fromARGB(255, 25, 25, 25),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
+                  ),
+                )
+              : const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
+                  ),
+                ),
           child: SingleChildScrollView(
             controller: scrollController,
             child: Column(
@@ -469,18 +477,16 @@ class _GroupPageState extends State<GroupPage> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: isDarkMode 
-                                        ? Color.fromARGB(255, 41, 41, 41)
-                                        : Colors.white,
+                              color: isDarkMode
+                                  ? const Color.fromARGB(255, 41, 41, 41)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               "we r goin to c the lions",
                               style: TextStyle(
                                 fontSize: 16,
-                                color: isDarkMode 
-                                        ? Colors.white
-                                        : Colors.black,
+                                color: isDarkMode ? Colors.white : Colors.black,
                               ),
                             ),
                           ),
@@ -495,9 +501,9 @@ class _GroupPageState extends State<GroupPage> {
                                       builder: (context) => const ChatPage()),
                                 );
                               },
-                              
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: darkenColor(themeProvider.primaryColor),
+                                backgroundColor:
+                                    darkenColor(themeProvider.primaryColor),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),

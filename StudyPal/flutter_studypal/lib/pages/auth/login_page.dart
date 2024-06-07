@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/pages/main_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_studypal/pages/auth/register_page.dart';
@@ -43,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeModel>(context);
     final isDarkMode = themeProvider.isDarkMode;
-    
+
     return Scaffold(
       // backgroundColor: Colors.white,
       body: SafeArea(
@@ -87,7 +88,8 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Email",
                           hintText: "Enter Your Email",
-                          hintStyle: const TextStyle(color: Color.fromRGBO(0, 0, 0, 0.259)),
+                          hintStyle: const TextStyle(
+                              color: Color.fromRGBO(0, 0, 0, 0.259)),
                           prefixIcon: const Icon(Icons.email),
                           filled: true,
                           fillColor: Colors.grey[200],
@@ -116,7 +118,8 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Password",
                           hintText: "Enter Your Password",
-                          hintStyle: const TextStyle(color: Color.fromRGBO(0, 0, 0, 0.259)),
+                          hintStyle: const TextStyle(
+                              color: Color.fromRGBO(0, 0, 0, 0.259)),
                           filled: true,
                           fillColor: Colors.grey[200],
                           prefixIcon: const Icon(Icons.lock),
@@ -152,7 +155,10 @@ class _LoginPageState extends State<LoginPage> {
                   height: 60,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(45),
-                    gradient: LinearGradient(colors: [darkenColor(themeProvider.primaryColor), themeProvider.primaryColor]),
+                    gradient: LinearGradient(colors: [
+                      darkenColor(themeProvider.primaryColor),
+                      themeProvider.primaryColor
+                    ]),
                   ),
                   child: TextButton(
                     onPressed: () {
@@ -273,7 +279,8 @@ class _LoginPageState extends State<LoginPage> {
         prefs.setString('email', emailController.text);
         prefs.setString('token', token);
 
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => MainScreen()));
       } else if (response.statusCode == 401) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

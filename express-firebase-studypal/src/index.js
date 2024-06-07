@@ -1,4 +1,6 @@
 const express = require("express")
+const http = require("http").createServer(app)
+const io = require("socket.io")(http)
 const cors = require("cors")
 const admin = require("firebase-admin")
 const bcrypt = require("bcrypt")
@@ -263,11 +265,164 @@ app.get("/users/:userId/accumulated-time", async (req, res) => {
   }
 })
 
+app.get("/messages", async (req, res) => {
+  try {
+    const snapshot = await db
+      .collection("messages")
+      .orderBy("timestamp", "desc")
+      .get()
+    const messages = snapshot.docs.map((doc) => doc.data())
+    res.json(messages)
+  } catch (error) {
+    console.error("Error fetching messages from Firestore:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+app.get("/messages/:groupId", async (req, res) => {
+  try {
+    const { groupId } = req.params
+    const { email } = req.query
+
+    const messagesSnapshot = await db
+      .collection("group-conversations")
+      .doc(groupId)
+      .collection("messages")
+      .orderBy("sentAt", "desc")
+      .get()
+
+    const messages = []
+
+    for (const doc of messagesSnapshot.docs) {
+      const messageData = doc.data()
+      const senderId = messageData.sentBy
+
+      // Query koleksi users untuk mendapatkan firstName berdasarkan email
+      const userSnapshot = await db
+        .collection("users")
+        .where("email", "==", senderId)
+        .limit(1)
+        .get()
+
+      if (!userSnapshot.empty) {
+        const userData = userSnapshot.docs[0].data()
+        const firstName = userData.first_name
+        const lastName = userData.last_name
+
+        messageData.fullName = firstName + " " + lastName
+      }
+
+      messages.push(messageData)
+    }
+
+    res.json(messages)
+  } catch (error) {
+    console.error("Error fetching messages:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+io.on("connection", (socket) => {
+  console.log("New client connected")
+
+  socket.on("message", async (data) => {
+    try {
+      const { senderId, text } = data
+      const groupId = "group1" //hardcode nyoba dulu brok
+
+      const groupRef = db.collection("group-conversations").doc(groupId)
+      const messageData = {
+        message: text,
+        sentBy: senderId,
+        sentAt: admin.firestore.FieldValue.serverTimestamp(),
+      }
+
+      await db.runTransaction(async (transaction) => {
+        const groupDoc = await transaction.get(groupRef)
+        if (!groupDoc.exists) {
+          transaction.set(groupRef, {
+            groupname: "Group 1",
+            initiatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            initiatedBy: senderId,
+            lastMessage: messageData,
+            lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            participantIds: [senderId],
+          })
+        } else {
+          // Jika dokumen grup sudah ada, perbarui lastMessage dan lastUpdatedAt
+          transaction.update(groupRef, {
+            lastMessage: messageData,
+            lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          })
+        }
+
+        transaction.set(groupRef.collection("messages").doc(), messageData)
+      })
+
+      console.log("Received Message: ", data)
+      io.emit("message", { groupId, ...data })
+    } catch (error) {
+      console.error("Error saving message to Firestore:", error)
+    }
+  })
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected")
+  })
+})
+
+app.put("/users/:email", async (req, res) => {
+  try {
+    const { email } = req.params
+    const { first_name, last_name, birth_date } = req.body
+
+    const userRef = db.collection("users").doc(email)
+
+    const userDoc = await userRef.get()
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" })
+    }
+
+    await userRef.update({
+      first_name,
+      last_name,
+      birth_date,
+    })
+
+    res.status(200).json({ message: "Profile updated successfully" })
+  } catch (error) {
+    console.error("Error updating profile:", error)
+    res.status(500).json({ error: "Failed to update profile" })
+  }
+})
+
+app.get("/users/:email", async (req, res) => {
+  try {
+    const { email } = req.params
+
+    const userRef = db.collection("users").doc(email)
+    const userDoc = await userRef.get()
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" })
+    }
+
+    const { first_name, last_name, birth_date } = userDoc.data()
+    const fullName = `${first_name} ${last_name}`
+
+    res.status(200).json({ fullName, birth_date })
+  } catch (error) {
+    console.error("Error fetching user data:", error)
+    res.status(500).json({ error: "Failed to fetch user data" })
+  }
+})
+
 app.get("/test", (req, res) => {
   res.send("Hello World!")
 })
 
 const PORT = 4000
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Express API running in PORT: " + PORT)
+http.listen(PORT, "0.0.0.0", () => {
+  console.log(`Express API running in PORT: ${PORT}`)
 })

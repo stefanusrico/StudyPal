@@ -51,7 +51,8 @@ class _InsightPageState extends State<InsightPage> {
   Future<void> _fetchAccumulatedTime() async {
     await _getEmailandToken(); // Menunggu email dan token diambil
 
-    if (email != null) {
+    if (email != null && mounted) {
+      // Check if the widget is mounted
       try {
         final response = await http.get(
           Uri.parse('http://10.0.2.2:4000/users/$email/accumulated-time'),
@@ -63,9 +64,11 @@ class _InsightPageState extends State<InsightPage> {
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           debugPrint('Data received from API: $data');
-          setState(() {
-            accumulatedTimeData = data;
-          });
+          if (mounted) {
+            setState(() {
+              accumulatedTimeData = data;
+            });
+          }
         } else {
           print('Failed to fetch accumulated time: ${response.statusCode}');
         }
@@ -74,7 +77,7 @@ class _InsightPageState extends State<InsightPage> {
         print('Exception occurred: $e');
       }
     } else {
-      print('Email is null');
+      print('Email is null or the widget is not mounted');
     }
   }
 
@@ -85,9 +88,14 @@ class _InsightPageState extends State<InsightPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-  final themeProvider = Provider.of<ThemeModel>(context);
-  final isDarkMode = themeProvider.isDarkMode;
+    final themeProvider = Provider.of<ThemeModel>(context);
+    final isDarkMode = themeProvider.isDarkMode;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -99,13 +107,16 @@ class _InsightPageState extends State<InsightPage> {
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDarkMode
-                    ? [Colors.black, Colors.black54]
-                    : [darkenColor(themeProvider.primaryColor), lightenColor(themeProvider.primaryColor),],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDarkMode
+                      ? [Colors.black, Colors.black54]
+                      : [
+                          darkenColor(themeProvider.primaryColor),
+                          lightenColor(themeProvider.primaryColor),
+                        ],
+                ),
               ),
-            ),
               child: Stack(
                 children: [
                   Column(
@@ -122,9 +133,9 @@ class _InsightPageState extends State<InsightPage> {
                                   width: 45,
                                   height: 45,
                                   decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                                    color: isDarkMode
+                                        ? Colors.black
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: PopupMenuButton(
@@ -168,7 +179,8 @@ class _InsightPageState extends State<InsightPage> {
                                         value: 'menu3',
                                         child: Row(
                                           children: [
-                                            Icon(Icons.settings), // Ikon tambahan
+                                            Icon(Icons
+                                                .settings), // Ikon tambahan
                                             SizedBox(width: 10),
                                             Text('Settings'),
                                           ],
@@ -226,9 +238,9 @@ class _InsightPageState extends State<InsightPage> {
                                   width: 95,
                                   height: 45,
                                   decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                                    color: isDarkMode
+                                        ? Colors.black
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: PopupMenuButton<String>(
@@ -244,7 +256,8 @@ class _InsightPageState extends State<InsightPage> {
                                           _selectedOption, // Tampilkan opsi yang dipilih
                                           // style: const TextStyle(color: Colors.black),
                                         ),
-                                        const Icon(Icons.expand_more_rounded), // Ikon panah ke bawah
+                                        const Icon(Icons
+                                            .expand_more_rounded), // Ikon panah ke bawah
                                       ],
                                     ),
                                     onSelected: (value) {
@@ -303,22 +316,21 @@ class _InsightPageState extends State<InsightPage> {
       maxChildSize: 1,
       builder: (BuildContext context, ScrollController scrollController) {
         return Container(
-          decoration: isDarkMode 
-          ? BoxDecoration(
-            color: Color.fromARGB(255, 25, 25, 25),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
-            ),
-          )
-
-          : BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(50),
-              topRight: Radius.circular(50),
-            ),
-          ),
+          decoration: isDarkMode
+              ? const BoxDecoration(
+                  color: Color.fromARGB(255, 25, 25, 25),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
+                  ),
+                )
+              : const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
+                  ),
+                ),
           child: SingleChildScrollView(
             // Menggunakan SingleChildScrollView sebagai ganti ListView
             controller: scrollController,
@@ -448,7 +460,7 @@ class _InsightPageState extends State<InsightPage> {
             children: [
               Text(
                 title, // Teks besar
-                style:  TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   color: darkenColor(themeProvider.primaryColor),
                   fontWeight: FontWeight.bold,
@@ -468,7 +480,7 @@ class _InsightPageState extends State<InsightPage> {
 
 String formatDuration(int? accumulatedTime) {
   if (accumulatedTime != null) {
-    final duration = Duration(milliseconds: accumulatedTime);
+    final duration = Duration(seconds: accumulatedTime);
     final hours = duration.inHours.remainingDigits(2);
     final minutes = duration.inMinutes.remainder(60).remainingDigits(2);
     final seconds = duration.inSeconds.remainder(60).remainingDigits(2);
