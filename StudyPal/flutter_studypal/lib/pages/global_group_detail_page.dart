@@ -21,7 +21,7 @@ class GlobalGroupDetailDialog extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              // color: Colors.grey[200],
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(

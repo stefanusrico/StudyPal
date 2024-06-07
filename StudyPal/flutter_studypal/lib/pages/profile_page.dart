@@ -360,6 +360,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     'Edit',
                                     style: TextStyle(
                                       fontSize: 14,
+                                      color: Colors.white
                                     ),
                                   ),
                                 ),
