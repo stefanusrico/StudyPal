@@ -8,4 +8,6 @@ Kelompok Faker:
 Tech Stack:
 - Flutter
 - ExpressJS
+- Firebase
+- Socket.io
 
