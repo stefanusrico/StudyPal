@@ -140,16 +140,21 @@ app.post("/check-token", async (req, res) => {
   }
 })
 
-app.post("/logout", (req, res) => {
+app.post("/logout", async (req, res) => {
   try {
     const { token } = req.body
 
-    // Tambahkan token ke dalam daftar token yang sudah logout
-    revokedTokens.add(token)
-    console.log(revokedTokens)
+    jwt.verify(token, secretKey, async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: "Invalid token" })
+      }
 
-    // Berikan respons yang sesuai
-    res.status(200).json({ message: "Logout successful" })
+      const userEmail = decoded.email
+
+      await db.collection("users").doc(userEmail).update({ status: "offline" })
+
+      res.status(200).json({ message: "Logout successful" })
+    })
   } catch (error) {
     console.error("Error during logout:", error)
     res.status(500).json({ error: "Failed to logout" })
