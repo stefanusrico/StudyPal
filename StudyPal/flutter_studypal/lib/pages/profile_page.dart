@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_studypal/pages/auth/login_page.dart';
+import 'package:flutter_studypal/pages/chat_screen.dart';
 import 'package:flutter_studypal/pages/edit_profile.dart';
 import 'package:intl/intl.dart';
 import 'settings_page.dart';
@@ -39,10 +40,42 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _getEmailandToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      // Set nilai email dari SharedPreferences ke variabel email
       email = prefs.getString('email');
       token = prefs.getString('token');
     });
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final url = Uri.parse('http://10.0.2.2:4000/logout');
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          'token': token,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        await prefs.remove('email');
+        await prefs.remove('token');
+
+        Navigator.of(context, rootNavigator: true).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      } else {
+        throw Exception('Failed to logout');
+      }
+    } catch (error) {
+      print('Error during logout: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to logout')),
+      );
+    }
   }
 
   Future<Map<String, dynamic>> getUserProfile(
@@ -359,9 +392,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   child: const Text(
                                     'Edit',
                                     style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white
-                                    ),
+                                        fontSize: 14, color: Colors.white),
                                   ),
                                 ),
                               ))
@@ -514,9 +545,7 @@ class AccountSection extends StatelessWidget {
                 leading: const Icon(Icons.account_circle),
                 title: const Text('Personal Data'),
                 trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  // Aksi saat item ditekan
-                },
+                onTap: () {},
               ),
               const Divider(),
               ListTile(
@@ -650,15 +679,4 @@ class OtherSection extends StatelessWidget {
       ],
     );
   }
-}
-
-void _logout(BuildContext context) async {
-  // Hapus data email dan token dari SharedPreferences
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.remove('email');
-  await prefs.remove('token');
-
-  // Navigasi ke halaman login atau halaman utama
-  Navigator.of(context, rootNavigator: true).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginPage()));
 }
