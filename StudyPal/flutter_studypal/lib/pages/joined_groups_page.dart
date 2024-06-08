@@ -1,4 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/models/groups.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'global_groups_page.dart';
 import 'group_page.dart';
 import 'settings_page.dart';
@@ -12,7 +16,6 @@ Color lightenColor(Color color, [double amount = 0.1]) {
   return hslLight.toColor();
 }
 
-// Fungsi untuk menggelapkan warna
 Color darkenColor(Color color, [double amount = 0.1]) {
   assert(amount >= 0 && amount <= 1);
   final hsl = HSLColor.fromColor(color);
@@ -20,11 +23,57 @@ Color darkenColor(Color color, [double amount = 0.1]) {
   return hslDark.toColor();
 }
 
-class JoinedGroupsPage extends StatelessWidget {
-  final List<Map<String, String>> joinedGroups = [
-    {'name': 'Group 1', 'description': 'Description 1'},
-    {'name': 'Group 2', 'description': 'Description 2'},
-  ];
+class JoinedGroupsPage extends StatefulWidget {
+  const JoinedGroupsPage({super.key});
+
+  @override
+  _JoinedGroupsPageState createState() => _JoinedGroupsPageState();
+}
+
+class _JoinedGroupsPageState extends State<JoinedGroupsPage> {
+  late Future<List<Group>> _joinedGroupsFuture;
+  String? email;
+  String? token;
+
+  @override
+  void initState() {
+    super.initState();
+    _getEmailandToken().then((_) {
+      setState(() {
+        _joinedGroupsFuture = fetchJoinedGroups(email!);
+      });
+    });
+  }
+
+  Future<void> _getEmailandToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      email = prefs.getString('email') ?? '';
+      token = prefs.getString('token') ?? '';
+    });
+  }
+
+  Future<List<Group>> fetchJoinedGroups(String email) async {
+    if (email.isEmpty) {
+      return [];
+    }
+
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:4000/groups/joined/$email'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    // print(response.body);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = json.decode(response.body);
+      return jsonData.map((json) => Group.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to fetch joined groups');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,18 +86,6 @@ class JoinedGroupsPage extends StatelessWidget {
       home: SafeArea(
         child: Scaffold(
           body: Container(
-            // decoration: BoxDecoration(
-            //   gradient: LinearGradient(
-            //     begin: Alignment.topLeft,
-            //     end: Alignment.bottomRight,
-            //     colors: isDarkMode
-            //         ? [Colors.black, Colors.black54]
-            //         : [
-            //             darkenColor(themeProvider.primaryColor),
-            //             lightenColor(themeProvider.primaryColor),
-            //           ],
-            //   ),
-            // ),
             child: Stack(
               children: [
                 Column(
@@ -65,16 +102,15 @@ class JoinedGroupsPage extends StatelessWidget {
                                 width: 45,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: isDarkMode ? Colors.black : Colors.white,
+                                  color:
+                                      isDarkMode ? Colors.black : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: PopupMenuButton(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  icon: const Icon(
-                                    Icons.menu,
-                                  ),
+                                  icon: const Icon(Icons.menu),
                                   itemBuilder: (BuildContext context) =>
                                       <PopupMenuEntry>[
                                     const PopupMenuItem(
@@ -122,10 +158,10 @@ class JoinedGroupsPage extends StatelessWidget {
                                   onSelected: (value) {
                                     switch (value) {
                                       case 'menu1':
-                                        // Tambahkan logika menu 1
+                                        // Add logic for menu 1
                                         break;
                                       case 'menu2':
-                                        // Tambahkan logika menu 2
+                                        // Add logic for menu 2
                                         break;
                                       case 'menu3':
                                         Navigator.push(
@@ -137,9 +173,8 @@ class JoinedGroupsPage extends StatelessWidget {
                                         );
                                         break;
                                       case 'menu4':
-                                        // Tambahkan logika menu 4
+                                        // Add logic for menu 4
                                         break;
-                                      // Add cases for more menu items as needed
                                     }
                                   },
                                 ),
@@ -147,29 +182,23 @@ class JoinedGroupsPage extends StatelessWidget {
                               const Text(
                                 'Joined Groups',
                                 style: TextStyle(
-                                  // color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              
                               Container(
                                 width: 45,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                                  color:
+                                      isDarkMode ? Colors.black : Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: PopupMenuButton(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  // color: Colors.white, // Background color of the dropdown
-                                  icon: const Icon(
-                                    Icons.notifications_outlined,
-                                    // color: Colors.black,
-                                  ),
+                                  icon:
+                                      const Icon(Icons.notifications_outlined),
                                   itemBuilder: (BuildContext context) =>
                                       <PopupMenuEntry>[
                                     const PopupMenuItem(
@@ -180,24 +209,13 @@ class JoinedGroupsPage extends StatelessWidget {
                                       value: 'notification2',
                                       child: Text('Challenges'),
                                     ),
-                                    // Add more PopupMenuItems as needed
                                   ],
                                   onSelected: (value) {
-                                    // Handle notification selection here
                                     switch (value) {
                                       case 'notification1':
-                                        // Navigator.push(
-                                        // context,
-                                        // MaterialPageRoute(builder: (context) => NotificationPage1()),
-                                        // );
                                         break;
                                       case 'notification2':
-                                        // Navigator.push(
-                                        // context,
-                                        // MaterialPageRoute(builder: (context) => NotificationPage2()),
-                                        // );
                                         break;
-                                      // Add cases for more notifications as needed
                                     }
                                   },
                                 ),
@@ -207,64 +225,98 @@ class JoinedGroupsPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                          const SizedBox(height: 16),
-                          Expanded(
-  child: ListView.builder(
-    itemCount: joinedGroups.length,
-    itemBuilder: (context, index) {
-      return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Column(
-          children: [
-            ListTile(
-              leading: Icon(Icons.group, color: isDarkMode ? Colors.white : Colors.black),
-              title: Text(
-                joinedGroups[index]['name']!,
-                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
-              ),
-              subtitle: Text(
-                joinedGroups[index]['description']!,
-                style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black54),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, color: isDarkMode ? Colors.white70 : Colors.black54),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GroupPage(group: joinedGroups[index]),
-                  ),
-                );
-              },
-            ),
-            // const Divider(
-            //   thickness: 1,
-            //   color: Colors.grey,
-            // ),
-          ],
-        ),
-      );
-    },
-  ),
-)
-
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          setState(() {
+                            _joinedGroupsFuture = fetchJoinedGroups(email!);
+                          });
+                        },
+                        child: FutureBuilder<List<Group>>(
+                          future: _joinedGroupsFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return const Center(
+                                  child: Text('Failed to fetch joined groups'));
+                            } else {
+                              final joinedGroups = snapshot.data!;
+                              return ListView.builder(
+                                itemCount: joinedGroups.length,
+                                itemBuilder: (context, index) {
+                                  final group = joinedGroups[index];
+                                  return Card(
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 16),
+                                    child: Column(
+                                      children: [
+                                        ListTile(
+                                            leading: Icon(Icons.group,
+                                                color: isDarkMode
+                                                    ? Colors.white
+                                                    : Colors.black),
+                                            title: Text(
+                                              group.name,
+                                              style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white
+                                                      : Colors.black),
+                                            ),
+                                            subtitle: Text(
+                                              group.description,
+                                              style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white70
+                                                      : Colors.black54),
+                                            ),
+                                            trailing: Icon(
+                                                Icons.arrow_forward_ios,
+                                                color: isDarkMode
+                                                    ? Colors.white70
+                                                    : Colors.black54),
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      GroupPage(
+                                                    group: joinedGroups[index],
+                                                  ),
+                                                ),
+                                              );
+                                            }),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
           floatingActionButton: FloatingActionButton(
-            shape: CircleBorder(),
+            shape: const CircleBorder(),
             foregroundColor: Colors.white,
             backgroundColor: themeProvider.primaryColor,
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => GlobalGroupsPage(),
+                  builder: (context) => const GlobalGroupsPage(),
                 ),
               );
             },

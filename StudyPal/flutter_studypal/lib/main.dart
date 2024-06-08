@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/models/socket_manager.dart';
 import 'package:flutter_studypal/pages/main_screen.dart';
 import 'package:flutter_studypal/pages/splash_page.dart';
 import 'package:flutter_studypal/pages/auth/login_page.dart';
@@ -11,6 +12,8 @@ Future<void> main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? token = prefs.getString('token');
   bool isLoggedIn = token != null;
+
+  SocketManager.initSocket();
 
   runApp(
     ChangeNotifierProvider(

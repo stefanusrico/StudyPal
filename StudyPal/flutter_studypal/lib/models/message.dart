@@ -1,4 +1,4 @@
-class Message {
+class ChatMessage {
   final String senderId;
   final String? recipientId;
   final String message;
@@ -6,7 +6,7 @@ class Message {
   final DateTime timestamp;
   final String fullName;
 
-  Message({
+  ChatMessage({
     required this.senderId,
     this.recipientId,
     required this.message,
@@ -15,8 +15,8 @@ class Message {
     required this.fullName,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
       senderId: json['senderId'],
       recipientId: json['recipientId'],
       message: json['message'],

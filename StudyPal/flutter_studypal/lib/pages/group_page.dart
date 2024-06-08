@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/models/groups.dart';
+import 'package:flutter_studypal/pages/main_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'chat_screen.dart';
 import 'package:flutter_studypal/utils/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_studypal/models/group_data.dart';
+import 'package:flutter_studypal/models/user_data.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 Color lightenColor(Color color, [double amount = 0.1]) {
   assert(amount >= 0 && amount <= 1);
@@ -10,7 +18,6 @@ Color lightenColor(Color color, [double amount = 0.1]) {
   return hslLight.toColor();
 }
 
-// Fungsi untuk menggelapkan warna
 Color darkenColor(Color color, [double amount = 0.1]) {
   assert(amount >= 0 && amount <= 1);
   final hsl = HSLColor.fromColor(color);
@@ -19,7 +26,8 @@ Color darkenColor(Color color, [double amount = 0.1]) {
 }
 
 class GroupPage extends StatefulWidget {
-  final Map<String, String> group;
+  final Group group;
+
   const GroupPage({super.key, required this.group});
 
   @override
@@ -27,22 +35,41 @@ class GroupPage extends StatefulWidget {
 }
 
 class _GroupPageState extends State<GroupPage> {
-  int selectedTile = 0;
+  late Future<GroupData> _groupDataFuture;
+  late Group _group;
   int currentPage = 1;
   int pageSize = 9;
+  int totalPages = 0;
 
-  // Simulasikan daftar user dan status online/offline mereka
-  final List<bool> onlineStatus = List.generate(
-      20, (index) => index * 2 == 0); // Genap = online, ganjil = offline
-  final List<String> data = List.generate(20, (index) => 'User $index');
+  @override
+  void initState() {
+    super.initState();
+    _group = widget.group;
+    _groupDataFuture = fetchGroupData(_group.id);
+  }
+
+  Future<GroupData> fetchGroupData(String groupId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:4000/group/$groupId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      return GroupData.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load group data');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final int totalItems = data.length;
-    final int totalPages = (totalItems / pageSize).ceil();
-
-    // Hitung jumlah pengguna yang online
-    final int onlineCount = onlineStatus.where((status) => status).length;
     final themeProvider = Provider.of<ThemeModel>(context);
     final isDarkMode = themeProvider.isDarkMode;
 
@@ -53,18 +80,18 @@ class _GroupPageState extends State<GroupPage> {
         child: Scaffold(
           appBar: AppBar(
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             title: Text(
-              widget.group['name']!,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              widget.group.name,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
+            ),
             centerTitle: true,
             leadingWidth: 56,
           ),
@@ -81,230 +108,262 @@ class _GroupPageState extends State<GroupPage> {
                       ],
               ),
             ),
-            child: Stack(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 0,
-                          10), // Kurangi jarak untuk lebih dekat dengan grid
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Studying ',
-                              style: TextStyle(
-                                  color: Colors
-                                      .white), // Warna untuk teks "Studying"
-                            ),
-                            TextSpan(
-                              text:
-                                  '$onlineCount member${onlineCount > 1 ? "s" : ""}', // Tambahkan "s" jika lebih dari satu
-                              style: TextStyle(
-                                color: darkenColor(darkenColor(themeProvider
-                                    .primaryColor)), // Warna untuk teks jumlah member
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                            16, 0, 16, 0), // Padding untuk GridView
-                        child: GridView.builder(
-                          itemCount: pageSize,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.8,
-                          ),
-                          itemBuilder: (context, index) {
-                            final int itemIndex =
-                                (currentPage - 1) * pageSize + index;
-                            if (itemIndex >= totalItems) {
-                              return const SizedBox.shrink();
-                            }
+            child: FutureBuilder<GroupData>(
+              future: _groupDataFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('${snapshot.error}'));
+                } else {
+                  final groupData = snapshot.data!;
+                  final userData = groupData.userData ?? [];
+                  final totalItems = userData.length;
+                  totalPages = (totalItems / pageSize).ceil();
+                  final int onlineCount =
+                      userData.where((user) => user.status == 'online').length;
 
-                            bool isOnline = onlineStatus[
-                                itemIndex]; // Status online pengguna
-
-                            return Card(
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
-                                side: BorderSide(
-                                  color: isOnline
-                                      ? darkenColor(themeProvider.primaryColor)
-                                      : isDarkMode
-                                          ? Colors.black
-                                          : const Color.fromARGB(
-                                              0, 255, 255, 255),
-                                  width: isOnline ? 4 : 0,
-                                ),
-                              ),
-                              color: isOnline
-                                  ? themeProvider.primaryColor
-                                  : isDarkMode
-                                      ? const Color.fromARGB(255, 23, 23, 23)
-                                      : Colors.white,
-                              child: InkWell(
-                                onTap: () {
-                                  // Aksi saat kartu ditekan
-                                },
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: isOnline
-                                          ? Colors.white
-                                          : themeProvider.primaryColor,
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      data[itemIndex],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: isOnline
-                                            ? Colors.white
-                                            : themeProvider.primaryColor,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      "00:00:00",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isOnline
-                                            ? Colors.white
-                                            : themeProvider.primaryColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                          0, 0, 20, 18), // Ubah padding agar lebih rapi
-                      child: Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.end, // Ubah posisinya ke kanan
+                  return Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            'Showing ${currentPage == totalPages ? totalItems - pageSize * (totalPages - 1) : pageSize} of $totalItems members',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 0, 10),
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  const TextSpan(
+                                    text: 'Studying ',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        '$onlineCount member${onlineCount > 1 ? "s" : ""}',
+                                    style: TextStyle(
+                                      color: darkenColor(darkenColor(
+                                          themeProvider.primaryColor)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: GridView.builder(
+                                      itemCount: currentPage == totalPages
+                                          ? userData.length % pageSize
+                                          : pageSize,
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 3,
+                                        crossAxisSpacing: 10,
+                                        mainAxisSpacing: 10,
+                                        childAspectRatio: 0.8,
+                                      ),
+                                      itemBuilder: (context, index) {
+                                        final startIndex =
+                                            (currentPage - 1) * pageSize;
+                                        final userIndex = startIndex + index;
+                                        if (userIndex >= userData.length) {
+                                          return Container();
+                                        }
+
+                                        final user = userData[userIndex];
+                                        final isOnline =
+                                            user.status == 'online';
+
+                                        return Card(
+                                          elevation: 2,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(18),
+                                            side: BorderSide(
+                                              color: isOnline
+                                                  ? darkenColor(themeProvider
+                                                      .primaryColor)
+                                                  : isDarkMode
+                                                      ? Colors.black
+                                                      : const Color.fromARGB(
+                                                          0, 255, 255, 255),
+                                              width: isOnline ? 4 : 0,
+                                            ),
+                                          ),
+                                          color: isOnline
+                                              ? themeProvider.primaryColor
+                                              : isDarkMode
+                                                  ? const Color.fromARGB(
+                                                      255, 23, 23, 23)
+                                                  : Colors.white,
+                                          child: InkWell(
+                                            onTap: () {
+                                              // Aksi saat kartu ditekan
+                                            },
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.person,
+                                                  size: 50,
+                                                  color: isOnline
+                                                      ? Colors.white
+                                                      : themeProvider
+                                                          .primaryColor,
+                                                ),
+                                                const SizedBox(height: 10),
+                                                Expanded(
+                                                  child: FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    child: Text(
+                                                      '${user.firstName} ${user.lastName}',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isOnline
+                                                            ? Colors.white
+                                                            : themeProvider
+                                                                .primaryColor,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(0, 0, 20, 18),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          'Showing ${(currentPage - 1) * pageSize + 1}-${currentPage == totalPages ? userData.length : currentPage * pageSize} of ${userData.length} members',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(0, 0, 0, 65),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                              Icons.chevron_left_rounded,
+                                              color: Colors.white),
+                                          onPressed: currentPage > 1
+                                              ? () {
+                                                  setState(() {
+                                                    currentPage--;
+                                                  });
+                                                }
+                                              : null,
+                                        ),
+                                        for (int i = 1; i <= totalPages; i++)
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 5),
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  currentPage = i;
+                                                });
+                                              },
+                                              style: ButtonStyle(
+                                                minimumSize:
+                                                    MaterialStateProperty.all<
+                                                        Size>(
+                                                  const Size(40, 40),
+                                                ),
+                                                backgroundColor:
+                                                    MaterialStateProperty.all<
+                                                        Color>(
+                                                  currentPage == i
+                                                      ? themeProvider
+                                                          .primaryColor
+                                                      : isDarkMode
+                                                          ? const Color
+                                                              .fromARGB(
+                                                              255, 23, 23, 23)
+                                                          : Colors.white,
+                                                ),
+                                                shape:
+                                                    MaterialStateProperty.all<
+                                                        RoundedRectangleBorder>(
+                                                  RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    side: BorderSide(
+                                                      color: currentPage == i
+                                                          ? darkenColor(
+                                                              themeProvider
+                                                                  .primaryColor)
+                                                          : isDarkMode
+                                                              ? Colors.black
+                                                              : Colors.white,
+                                                      width: currentPage == i
+                                                          ? 4
+                                                          : 0,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                i.toString(),
+                                                style: TextStyle(
+                                                  color: currentPage == i
+                                                      ? Colors.white
+                                                      : themeProvider
+                                                          .primaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        IconButton(
+                                          icon: const Icon(
+                                              Icons.chevron_right_rounded,
+                                              color: Colors.white),
+                                          onPressed: currentPage < totalPages
+                                              ? () {
+                                                  setState(() {
+                                                    currentPage++;
+                                                  });
+                                                }
+                                              : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 65),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.chevron_left_rounded,
-                                color: Colors.white),
-                            onPressed: currentPage > 1
-                                ? () {
-                                    setState(() {
-                                      currentPage--; // Navigasi ke halaman sebelumnya
-                                    });
-                                  }
-                                : null, // Jika halaman pertama, tombol dinonaktifkan
-                          ),
-
-                          // Tombol angka-angka halaman
-                          for (int i = 1; i <= totalPages; i++)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 5), // Beri jarak antar tombol
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    currentPage =
-                                        i; // Navigasi ke halaman tertentu
-                                  });
-                                },
-                                style: ButtonStyle(
-                                  minimumSize: MaterialStateProperty.all<Size>(
-                                    const Size(40,
-                                        40), // Ukuran minimum agar tombol simetris
-                                  ),
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                    currentPage == i
-                                        ? themeProvider
-                                            .primaryColor // Warna tombol saat halaman aktif
-                                        : isDarkMode
-                                            ? const Color.fromARGB(
-                                                255, 23, 23, 23)
-                                            : Colors
-                                                .white, // Warna tombol saat halaman tidak aktif
-                                  ),
-                                  shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      side: BorderSide(
-                                        color: currentPage == i
-                                            ? darkenColor(themeProvider
-                                                .primaryColor) // Border jika halaman aktif
-                                            : isDarkMode
-                                                ? Colors.black
-                                                : Colors.white,
-                                        width: currentPage == i
-                                            ? 4
-                                            : 0, // Ketebalan border
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                child: Text(
-                                  i.toString(),
-                                  style: TextStyle(
-                                    color: currentPage == i
-                                        ? Colors.white
-                                        : themeProvider.primaryColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right_rounded,
-                                color: Colors.white),
-                            onPressed: currentPage < totalPages
-                                ? () {
-                                    setState(() {
-                                      currentPage++; // Navigasi ke halaman berikutnya
-                                    });
-                                  }
-                                : null, // Jika halaman terakhir, tombol dinonaktifkan
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                bottomDetailsSheet(), // Jika diperlukan, tetap tampilkan bagian bawah
-              ],
+                      bottomDetailsSheet(),
+                    ],
+                  );
+                }
+              },
             ),
           ),
         ),
@@ -407,28 +466,22 @@ class _GroupPageState extends State<GroupPage> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment
-                                .spaceBetween, // Atur jarak antar-kartu
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              buildCustomCard(
-                                  "02:10:47", "Time Total"), // Kartu pertama
-                              buildCustomCard(
-                                  "00:20:43", "Max Focus"), // Kartu kedua
+                              buildCustomCard("02:10:47", "Time Total"),
+                              buildCustomCard("00:20:43", "Max Focus"),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 2), // Jarak antar-baris
+                        const SizedBox(height: 2),
                         // Row kedua
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment
-                                .spaceBetween, // Atur jarak antar-kartu
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              buildCustomCard(
-                                  "12h 20m", "Start Time"), // Kartu ketiga
-                              buildCustomCard(
-                                  "14h 30m", "Finish Time"), // Kartu keempat
+                              buildCustomCard("12h 20m", "Start Time"),
+                              buildCustomCard("14h 30m", "Finish Time"),
                             ],
                           ),
                         ),
@@ -444,7 +497,6 @@ class _GroupPageState extends State<GroupPage> {
                       Text(
                         'Group Chat',
                         style: TextStyle(
-                          // color: Colors.black,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -495,11 +547,21 @@ class _GroupPageState extends State<GroupPage> {
                             alignment: Alignment.centerRight,
                             child: ElevatedButton(
                               onPressed: () {
+                                final groupId = widget.group.id;
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => const ChatPage()),
-                                );
+                                    builder: (context) =>
+                                        ChatPage(groupId: groupId),
+                                  ),
+                                ).then((value) {
+                                  if (value is String) {
+                                    MainScreen.currentState?.setState(() {
+                                      MainScreen.currentState?.selectedGroupId =
+                                          value;
+                                    });
+                                  }
+                                });
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
@@ -532,10 +594,9 @@ class _GroupPageState extends State<GroupPage> {
 
   Widget buildCustomCard(String title, String subtitle) {
     return Container(
-      // margin: EdgeInsets.fromLTRB(10, 5, 10, 10),
       padding: const EdgeInsets.symmetric(horizontal: 0),
-      width: 140, // Ukuran lebar tetap untuk setiap kartu
-      height: 80, // Ukuran tinggi tetap untuk setiap kartu
+      width: 140,
+      height: 80,
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -544,11 +605,11 @@ class _GroupPageState extends State<GroupPage> {
         child: Padding(
           padding: const EdgeInsets.all(6),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center, // Konten di tengah
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                title, // Teks besar
+                title,
                 style: const TextStyle(
                   fontSize: 18,
                   color: Color.fromARGB(255, 136, 146, 237),
@@ -556,7 +617,7 @@ class _GroupPageState extends State<GroupPage> {
                 ),
               ),
               Text(
-                subtitle, // Teks kecil
+                subtitle,
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],

@@ -14,9 +14,18 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter_studypal/models/message.dart';
+import 'package:flutter_studypal/models/socket_manager.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  final dynamic groupId;
+  final IO.Socket socket;
+
+  ChatPage({super.key, required this.groupId})
+      : socket = IO.io(
+          'http://10.0.2.2:4000',
+          IO.OptionBuilder().setTransports(['websocket']).build(),
+        );
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -29,40 +38,55 @@ class _ChatPageState extends State<ChatPage> {
   final _user = const types.User(
     id: '82091008-a484-4a89-ae75-a22bf8d6f3ac',
   );
-  late IO.Socket socket;
   Future<void>? _loadMessagesFuture;
+  bool _isConnected = false;
 
   @override
   void initState() {
     super.initState();
     _loadMessagesFuture = _loadMessages();
+    if (!SocketManager.socket.connected) {
+      _connectToServer();
+    }
   }
 
   Future<void> _loadMessages() async {
     await _getEmailandToken();
-    initSocket();
-    await loadMessagesFromBackend('group1', email!);
+    print(widget.groupId);
+    await loadMessagesFromBackend(widget.groupId, email!);
   }
 
   @override
   void dispose() {
-    socket.disconnect();
+    _disconnectSocket();
     super.dispose();
   }
 
-  void initSocket() {
-    socket = IO.io('http://10.0.2.2:4000', <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
+  void _connectToServer() {
+    if (!_isConnected) {
+      _isConnected = true;
+      SocketManager.socket.onConnect((_) {
+        print('Connected');
+        SocketManager.socket.emit('join', {'groupId': widget.groupId});
+      });
 
-    socket.connect();
+      SocketManager.socket.onDisconnect((data) {
+        print('Disconnected');
+        _isConnected = false;
+      });
 
-    socket.onConnect((data) => print('Connected'));
-    socket.onDisconnect((data) => print('Disconnected'));
-    socket.on('newMessage', (data) {
-      handleIncomingMessage(data);
-    });
+      SocketManager.socket.on('newMessage', (data) {
+        handleIncomingMessage(data);
+      });
+    }
+  }
+
+  void _disconnectSocket() {
+    if (_isConnected) {
+      print('Disconnected');
+      SocketManager.socket.disconnect();
+      _isConnected = false;
+    }
   }
 
   Future<void> _getEmailandToken() async {
@@ -80,23 +104,40 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void handleIncomingMessage(dynamic data) {
-    final message = types.TextMessage(
-      author: data['sender'] == email ? _user : types.User(id: data['sender']),
-      createdAt: DateTime.now().millisecondsSinceEpoch,
-      id: const Uuid().v4(),
-      text: data['text'],
-    );
+    try {
+      final senderId = (data['senderId'] ?? '').toString();
+      final text = data['text'] ?? '';
 
-    setState(() {
-      _messages.insert(0, message);
-    });
+      if (senderId.isNotEmpty && text.isNotEmpty) {
+        final message = types.TextMessage(
+          author: senderId == email
+              ? _user
+              : types.User(id: senderId, firstName: data['fullName']),
+          createdAt: DateTime.now().millisecondsSinceEpoch,
+          id: const Uuid().v4(),
+          text: text,
+        );
+
+        setState(() {
+          _messages.insert(0, message);
+        });
+      }
+    } catch (error, stackTrace) {
+      print('Error handling incoming message: $error');
+      print('Stack trace: $stackTrace');
+    }
   }
 
   void sendMessage(String text) {
-    // Kirim pesan ke server menggunakan socket.emit
-    socket.emit('message', {'text': text, 'senderId': email});
+    widget.socket.emit(
+      'message',
+      jsonEncode({
+        'text': text,
+        'senderId': email,
+        'groupId': widget.groupId,
+      }),
+    );
 
-    // Tambahkan pesan ke daftar pesan
     final message = types.TextMessage(
       author: _user,
       createdAt: DateTime.now().millisecondsSinceEpoch,
@@ -272,51 +313,36 @@ class _ChatPageState extends State<ChatPage> {
         },
       );
 
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final List<dynamic> messagesData = json.decode(response.body);
         final messages = messagesData.map((messageData) {
-          final createdAt = messageData['sentAt'];
-          int? createdAtMillis;
-
-          if (createdAt is String) {
-            createdAtMillis = DateTime.parse(createdAt).millisecondsSinceEpoch;
-          } else if (createdAt is int) {
-            createdAtMillis = createdAt;
-          }
-
+          final chatMessage = ChatMessage.fromJson(messageData);
           return types.TextMessage(
-            author: messageData['sentBy'] == email
+            author: chatMessage.senderId == email
                 ? _user
                 : types.User(
-                    id: messageData['sentBy'],
-                    firstName: messageData['fullName']),
-            createdAt: createdAtMillis ?? DateTime.now().millisecondsSinceEpoch,
+                    id: chatMessage.senderId,
+                    firstName: chatMessage.fullName,
+                  ),
+            createdAt: chatMessage.timestamp.millisecondsSinceEpoch,
             id: const Uuid().v4(),
-            text: messageData['message'],
+            text: chatMessage.message,
           );
         }).toList();
-
         setState(() {
           _messages = messages;
         });
       } else {
         print('Failed to load messages. Status code: ${response.statusCode}');
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
       print('Error loading messages: $error');
+      print('Stack trace: $stackTrace');
     }
   }
-
-  // void loadMessages() async {
-  //   final response = await rootBundle.loadString('assets/messages.json');
-  //   final messages = (jsonDecode(response) as List)
-  //       .map((e) => types.Message.fromJson(e as Map<String, dynamic>))
-  //       .toList();
-
-  //   setState(() {
-  //     _messages = messages;
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) => SafeArea(
@@ -324,13 +350,13 @@ class _ChatPageState extends State<ChatPage> {
           appBar: AppBar(
             title: const Text('Chat'), // Judul "Chat"
             centerTitle: true, // Posisikan teks di tengah header
-            // leading: IconButton(
-            //   // Tombol kembali di pojok kiri atas
-            //   icon: const Icon(Icons.arrow_back),
-            //   onPressed: () {
-            //     Navigator.of(context).pop();
-            //   },
-            // ),
+            leading: IconButton(
+              // Tombol kembali di pojok kiri atas
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.more_vert),

@@ -1,45 +1,86 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_studypal/models/groups.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GlobalGroupDetailDialog extends StatelessWidget {
-  final Map<String, String> group;
+  final Group group;
 
-  GlobalGroupDetailDialog({required this.group});
+  const GlobalGroupDetailDialog({super.key, required this.group});
+
+  Future<void> joinGroup(String userId, String groupId) async {
+    final url = Uri.parse('http://10.0.2.2:4000/groups/$groupId/join');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'userId': userId}),
+      );
+
+      if (response.statusCode == 200) {
+        // Pengguna berhasil bergabung ke grup
+        print('User joined the group successfully');
+      } else {
+        // Tangani error bergabung ke grup
+        print('Failed to join group: ${response.body}');
+      }
+    } catch (e) {
+      print('Error joining group: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final participantIds = group.participantIds ?? [];
+    final maxParticipants = group.maxParticipants ?? 0;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Group Info',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              // color: Colors.grey[200],
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  group['name']!,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  group.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
-                  group['description']!,
-                  style: TextStyle(fontSize: 16),
+                  group.description,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '${participantIds.length}/${maxParticipants} person',
+                  style: const TextStyle(fontSize: 14),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -47,15 +88,22 @@ class GlobalGroupDetailDialog extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).pop(); // Close the dialog
                 },
-                child: Text('Close'),
+                child: const Text('Close'),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               ElevatedButton(
-                onPressed: () {
-                  // Logic to join the group
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                child: Text('Join Group'),
+                onPressed: participantIds.length < maxParticipants
+                    ? () async {
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        String? userId = prefs.getString('email');
+                        if (userId != null) {
+                          await joinGroup(userId, group.id);
+                          Navigator.of(context).pop(); // Close the dialog
+                        }
+                      }
+                    : null,
+                child: const Text('Join Group'),
               ),
             ],
           ),

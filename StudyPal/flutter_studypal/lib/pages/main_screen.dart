@@ -203,7 +203,7 @@ class _MainScreenState extends State<MainScreen> {
         navKey: insightNavKey,
       ),
       NavModel(
-        page: JoinedGroupsPage(),
+        page: const JoinedGroupsPage(),
         navKey: groupNavKey,
       ),
       NavModel(
