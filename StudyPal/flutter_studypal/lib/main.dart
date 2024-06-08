@@ -38,9 +38,9 @@ class MyApp extends StatelessWidget {
             primaryColor: theme.primaryColor,
             brightness: theme.isDarkMode ? Brightness.dark : Brightness.light,
           ),
-          initialRoute: isLoggedIn ? '/home' : '/',
+          initialRoute: isLoggedIn ? '/home' : '/splash',
           routes: {
-            '/': (context) => const SplashPage(),
+            '/splash': (context) => const SplashPage(),
             '/home': (context) => const MainScreen(),
             '/login': (context) => const LoginPage(),
           },

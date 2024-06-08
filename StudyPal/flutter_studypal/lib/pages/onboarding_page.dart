@@ -3,40 +3,9 @@ import 'package:flutter_studypal/components/feature_row.dart';
 import 'package:flutter_studypal/utils/global_colors.dart';
 import 'package:flutter_studypal/utils/global_text.dart';
 import 'auth/login_page.dart';
-import 'package:flutter_studypal/pages/main_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class Onboarding extends StatefulWidget {
+class Onboarding extends StatelessWidget {
   const Onboarding({super.key});
-
-  @override
-  _OnboardingState createState() => _OnboardingState();
-}
-
-class _OnboardingState extends State<Onboarding> {
-  @override
-  void initState() {
-    super.initState();
-    checkLoginStatus();
-  }
-
-  Future<void> checkLoginStatus() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    bool isLoggedIn = token != null;
-
-    if (isLoggedIn) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +19,56 @@ class _OnboardingState extends State<Onboarding> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ...
+                Center(
+                  child: Text(
+                    "Welcome to StudyPal",
+                    textAlign: TextAlign.center,
+                    style: GlobalText.blackPrimaryArimoTextStyle.copyWith(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 50),
+                const FeatureRowWidget(
+                  iconPath: 'lib/assets/timer.svg',
+                  title: 'Time tracking',
+                  description: 'Tracking study time for each subject.',
+                  iconHeight: 38,
+                ),
+                const SizedBox(height: 35),
+                const FeatureRowWidget(
+                  iconPath: 'lib/assets/block.svg',
+                  title: 'Block distractive apps',
+                  description:
+                      'On focus session, block other apps to boost focus.',
+                  iconHeight: 33,
+                ),
+                const SizedBox(height: 35),
+                const FeatureRowWidget(
+                  iconPath: 'lib/assets/people.svg',
+                  title: 'Study groups',
+                  description:
+                      'Create groups to check out friends status and study activities.',
+                  iconHeight: 38,
+                ),
+                const SizedBox(height: 35),
+                const FeatureRowWidget(
+                  iconPath: 'lib/assets/controller.svg',
+                  title: 'Gamify your study',
+                  description:
+                      'Create groups to check out friends status and study activities.',
+                  iconHeight: 38,
+                ),
+                const SizedBox(height: 35),
+                const FeatureRowWidget(
+                  iconPath: 'lib/assets/achievement.svg',
+                  title: 'Rewards and achievements',
+                  description:
+                      'Create groups to check out friends status and study activities.',
+                  iconHeight: 38,
+                ),
+                const SizedBox(height: 45),
                 Container(
                   width: double.infinity,
                   height: 60,

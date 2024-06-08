@@ -31,7 +31,7 @@ class JoinedGroupsPage extends StatefulWidget {
 }
 
 class _JoinedGroupsPageState extends State<JoinedGroupsPage> {
-  late Future<List<Group>> _joinedGroupsFuture;
+  late Future<List<Group>> _joinedGroupsFuture = Future.value([]);
   String? email;
   String? token;
 
