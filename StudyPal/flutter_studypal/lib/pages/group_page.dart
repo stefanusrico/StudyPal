@@ -554,14 +554,7 @@ class _GroupPageState extends State<GroupPage> {
                                     builder: (context) =>
                                         ChatPage(groupId: groupId),
                                   ),
-                                ).then((value) {
-                                  if (value is String) {
-                                    MainScreen.currentState?.setState(() {
-                                      MainScreen.currentState?.selectedGroupId =
-                                          value;
-                                    });
-                                  }
-                                });
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
