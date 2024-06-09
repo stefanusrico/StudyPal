@@ -1,7 +1,6 @@
 const revokedTokens = new Set()
 
 const authMiddleware = (req, res, next) => {
-  console.log("Middleware called")
   const authorizationHeader = req.headers.authorization
 
   if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
