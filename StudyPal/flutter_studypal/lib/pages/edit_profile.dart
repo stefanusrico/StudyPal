@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -13,15 +14,19 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  late TextEditingController _nameController;
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
   late DateTime _selectedDate;
   String? email;
   String? token;
+  File? _imageFile;
+  String? imageUrl;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
     _selectedDate = DateTime.now();
     _getEmailandToken().then((_) {
       getProfileData();
@@ -30,7 +35,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
   }
 
@@ -56,31 +62,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
   }
 
-  Future<void> saveProfileChanges(
-    String firstName,
-    String lastName,
-    DateTime birthDate,
-  ) async {
+  Future<void> saveProfileChanges() async {
     final url = Uri.parse('http://10.0.2.2:4000/users/$email');
-    final response = await http.put(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        "Authorization": "Bearer $token",
-      },
-      body: json.encode({
-        'first_name': firstName,
-        'last_name': lastName,
-        'birth_date': birthDate.toIso8601String(),
-      }),
-    );
+
+    var request = http.MultipartRequest('PUT', url);
+    request.headers['Authorization'] = "Bearer $token";
+
+    if (_imageFile != null) {
+      var stream = http.ByteStream(_imageFile!.openRead());
+      var length = await _imageFile!.length();
+      var multipartFile = http.MultipartFile('image', stream, length,
+          filename: _imageFile!.path.split('/').last);
+      request.files.add(multipartFile);
+    }
+
+    request.fields['first_name'] = _firstNameController.text;
+    request.fields['last_name'] = _lastNameController.text;
+    request.fields['birth_date'] = _selectedDate.toIso8601String();
+
+    var response = await request.send();
+
+    print(response.statusCode);
 
     if (response.statusCode == 200) {
-      // Profil berhasil diperbarui
       print('Profile updated successfully');
+      Navigator.pop(context);
     } else {
-      // Terjadi kesalahan saat memperbarui profil
-      print('Failed to update profile: ${response.body}');
+      print('Failed to update profile: ${response.reasonPhrase}');
+      print('Response body: ${await response.stream.bytesToString()}');
     }
   }
 
@@ -93,17 +102,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
       },
     );
 
+    print(response.body);
+
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final fullName = data['fullName'];
+      final firstName = data['first_name'];
+      final lastName = data['last_name'];
       final birthDate = DateTime.parse(data['birth_date']);
+      final fetchedImageUrl = data['image'];
 
       setState(() {
-        _nameController.text = fullName;
+        _firstNameController.text = firstName ?? '';
+        _lastNameController.text = lastName ?? '';
         _selectedDate = birthDate;
+        if (fetchedImageUrl != null) {
+          _imageFile = null; // Reset _imageFile jika ada gambar dari API
+          imageUrl = fetchedImageUrl; // Simpan URL gambar ke variabel imageUrl
+        }
       });
     } else {
       print('Failed to fetch user data: ${response.body}');
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final imagePicker = ImagePicker();
+    final pickedImage =
+        await imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (pickedImage != null) {
+      setState(() {
+        _imageFile = File(pickedImage.path);
+      });
     }
   }
 
@@ -119,20 +149,54 @@ class _EditProfilePageState extends State<EditProfilePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             GestureDetector(
-              onTap: () {
-                // Implement logic to select and update profile picture
-              },
-              child: const CircleAvatar(
+              onTap: _pickImage,
+              child: CircleAvatar(
                 radius: 50,
-                // backgroundImage:
-                //     NetworkImage('https://example.com/profile.jpg'),
+                backgroundImage:
+                    _imageFile != null ? FileImage(_imageFile!) : null,
+                child: _imageFile == null && imageUrl != null
+                    ? ClipOval(
+                        child: Image.network(
+                          imageUrl ?? '',
+                          fit: BoxFit.cover,
+                          width: 100,
+                          height: 100,
+                          loadingBuilder: (BuildContext context, Widget child,
+                              ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) {
+                              return child;
+                            }
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : 0,
+                              ),
+                            );
+                          },
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return const Icon(Icons.error);
+                          },
+                        ),
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 16),
             TextField(
-              controller: _nameController,
+              controller: _firstNameController,
               decoration: const InputDecoration(
-                labelText: 'Name',
+                labelText: 'First Name',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _lastNameController,
+              decoration: const InputDecoration(
+                labelText: 'Last Name',
               ),
             ),
             const SizedBox(height: 16),
@@ -153,13 +217,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                final nameParts = _nameController.text.split(' ');
-                final firstName =
-                    nameParts.sublist(0, nameParts.length - 1).join(' ');
-                final lastName = nameParts.length > 1 ? nameParts.last : '';
-                saveProfileChanges(firstName, lastName, _selectedDate);
-              },
+              onPressed: saveProfileChanges,
               child: const Text('Save'),
             ),
           ],

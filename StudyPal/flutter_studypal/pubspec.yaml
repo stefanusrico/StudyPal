@@ -51,7 +51,7 @@ dependencies:
   jwt_decode: ^0.3.1
   flutter_chat_ui: ^1.6.12
   file_picker: ^8.0.3
-  image_picker: ^1.1.1
+  image_picker: ^1.1.2
   mime: ^1.0.5
   open_filex: ^4.4.0
   path_provider: ^2.1.3

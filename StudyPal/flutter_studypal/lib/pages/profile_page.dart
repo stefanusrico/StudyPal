@@ -151,329 +151,330 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return SafeArea(
       child: Scaffold(
-        body: SingleChildScrollView(
-          child: Container(
-            // decoration: BoxDecoration(
-            //   gradient: LinearGradient(
-            //     begin: Alignment.topLeft,
-            //     end: Alignment.bottomRight,
-            //     colors: [
-            //       Color.fromARGB(255, 174, 196, 250), // Warna awal
-            //       Color.fromARGB(255, 115, 155, 255), // Warna akhir
-            //     ],
-            //   ),
-            // ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(17, 16, 17, 0),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: isDarkMode ? Colors.black : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: PopupMenuButton(
-                              shape: RoundedRectangleBorder(
+        body: RefreshIndicator(
+          onRefresh: () async {
+            await fetchData();
+          },
+          child: SingleChildScrollView(
+            child: Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(17, 16, 17, 0),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              width: 45,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? Colors.black : Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              // color: Colors.white, // Background color of the dropdown
-                              icon: const Icon(
-                                Icons.menu,
-                                // color: Colors.black,
-                              ),
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry>[
-                                const PopupMenuItem(
-                                  value: 'menu1',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons
-                                          .person), // Tambahkan ikon di sebelah kiri teks
-                                      SizedBox(
-                                          width:
-                                              10), // Beri jarak antara ikon dan teks
-                                      Text('John Doe'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'menu2',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons
-                                          .logout_rounded), // Tambahkan ikon
-                                      SizedBox(width: 10),
-                                      Text('Sign Out'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuDivider(
-                                    height: 1), // Garis pembatas
-                                const PopupMenuItem(
-                                  value: 'menu3',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.settings), // Ikon tambahan
-                                      SizedBox(width: 10),
-                                      Text('Settings'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'menu4',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.help), // Ikon tambahan
-                                      SizedBox(width: 10),
-                                      Text('Help'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              onSelected: (value) {
-                                // Handle menu item selection here
-                                switch (value) {
-                                  case 'menu1':
-                                    // Tambahkan logika menu 1
-                                    break;
-                                  case 'menu2':
-                                    // Tambahkan logika menu 2
-                                    break;
-                                  case 'menu3':
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const SettingsPage(), // Arahkan ke SettingsPage
-                                      ),
-                                    );
-                                    break;
-                                  case 'menu4':
-                                    // Tambahkan logika menu 4
-                                    break;
-                                  // Add cases for more menu items as needed
-                                }
-                              },
-                            ),
-                          ),
-                          const Text(
-                            "Profile",
-                            style: TextStyle(
-                              // color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Container(
-                            width: 45,
-                            height: 45,
-                            decoration: BoxDecoration(
-                              color: isDarkMode ? Colors.black : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: PopupMenuButton(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              // color: Colors.white, // Background color of the dropdown
-                              icon: const Icon(
-                                Icons.notifications_outlined,
-                                // color: Colors.black,
-                              ),
-                              itemBuilder: (BuildContext context) =>
-                                  <PopupMenuEntry>[
-                                const PopupMenuItem(
-                                  value: 'notification1',
-                                  child: Text('Notifications'),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'notification2',
-                                  child: Text('Challenges'),
-                                ),
-                                // Add more PopupMenuItems as needed
-                              ],
-                              onSelected: (value) {
-                                // Handle notification selection here
-                                switch (value) {
-                                  case 'notification1':
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) =>
-                                              const NotificationsPage()),
-                                    );
-                                    break;
-                                  case 'notification2':
-                                    // Navigator.push(
-                                    // context,
-                                    // MaterialPageRoute(builder: (context) => NotificationPage2()),
-                                    // );
-                                    break;
-                                  // Add cases for more notifications as needed
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Ikon foto profil bulat
-                          const CircleAvatar(
-                            radius: 30, // Ukuran ikon
-                            // backgroundImage: AssetImage('assets/profile_picture.jpg'), // Contoh gambar
-                          ),
-                          const SizedBox(
-                              width: 16), // Jarak antara ikon dan teks
-                          // Kolom untuk teks nama dan deskripsi
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start, // Teks rata kiri
-                              children: [
-                                Text(
-                                  userProfile?['fullName'] ?? '', // Nama profil
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  userProfile?['email'] ?? '',
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
+                              child: PopupMenuButton(
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 35,
-                                  vertical: 0,
+                                // color: Colors.white, // Background color of the dropdown
+                                icon: const Icon(
+                                  Icons.menu,
+                                  // color: Colors.black,
                                 ),
-                                backgroundColor: themeProvider
-                                    .primaryColor, // Warna latar belakang
-                                foregroundColor: Colors.white, // Warna teks
-                              ),
-                              child: SizedBox(
-                                width: 50,
-                                height: 40, // Atur lebar sesuai kebutuhan
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry>[
+                                  const PopupMenuItem(
+                                    value: 'menu1',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons
+                                            .person), // Tambahkan ikon di sebelah kiri teks
+                                        SizedBox(
+                                            width:
+                                                10), // Beri jarak antara ikon dan teks
+                                        Text('John Doe'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'menu2',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons
+                                            .logout_rounded), // Tambahkan ikon
+                                        SizedBox(width: 10),
+                                        Text('Sign Out'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuDivider(
+                                      height: 1), // Garis pembatas
+                                  const PopupMenuItem(
+                                    value: 'menu3',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.settings), // Ikon tambahan
+                                        SizedBox(width: 10),
+                                        Text('Settings'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'menu4',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.help), // Ikon tambahan
+                                        SizedBox(width: 10),
+                                        Text('Help'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                onSelected: (value) {
+                                  // Handle menu item selection here
+                                  switch (value) {
+                                    case 'menu1':
+                                      // Tambahkan logika menu 1
+                                      break;
+                                    case 'menu2':
+                                      // Tambahkan logika menu 2
+                                      break;
+                                    case 'menu3':
+                                      Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              const EditProfilePage(), // Arahkan ke SettingsPage
-                                        ));
-                                  },
-                                  child: const Text(
-                                    'Edit',
-                                    style: TextStyle(
-                                        fontSize: 14, color: Colors.white),
-                                  ),
+                                              const SettingsPage(), // Arahkan ke SettingsPage
+                                        ),
+                                      );
+                                      break;
+                                    case 'menu4':
+                                      // Tambahkan logika menu 4
+                                      break;
+                                    // Add cases for more menu items as needed
+                                  }
+                                },
+                              ),
+                            ),
+                            const Text(
+                              "Profile",
+                              style: TextStyle(
+                                // color: Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Container(
+                              width: 45,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? Colors.black : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: PopupMenuButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                              ))
-                        ],
-                      ),
-                      const SizedBox(
-                          height: 32), // Jarak antara baris pertama dan kedua
-
-                      // Baris kedua: Tiga kartu saling bersebelahan
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment
-                            .spaceEvenly, // Sebar kartu secara merata
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 70, // Atur tinggi kartu
-                              child: _buildStatCard(
-                                  '2024', 'Year joined'), // Kartu pertama
+                                // color: Colors.white, // Background color of the dropdown
+                                icon: const Icon(
+                                  Icons.notifications_outlined,
+                                  // color: Colors.black,
+                                ),
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry>[
+                                  const PopupMenuItem(
+                                    value: 'notification1',
+                                    child: Text('Notifications'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'notification2',
+                                    child: Text('Challenges'),
+                                  ),
+                                  // Add more PopupMenuItems as needed
+                                ],
+                                onSelected: (value) {
+                                  // Handle notification selection here
+                                  switch (value) {
+                                    case 'notification1':
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const NotificationsPage()),
+                                      );
+                                      break;
+                                    case 'notification2':
+                                      // Navigator.push(
+                                      // context,
+                                      // MaterialPageRoute(builder: (context) => NotificationPage2()),
+                                      // );
+                                      break;
+                                    // Add cases for more notifications as needed
+                                  }
+                                },
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: SizedBox(
-                              height: 70, // Atur tinggi kartu
-                              child: _buildStatCard(
-                                  '48h 27m', 'Times used'), // Kartu kedua
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: SizedBox(
-                              height: 70, // Atur tinggi kartu
-                              child: _buildStatCard(
-                                  userProfile?['birth_date'] ?? '',
-                                  'Birthday'), // Kartu ketiga
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Tambahkan komponen AccountSection
-                      const AccountSection(),
-
-                      const SizedBox(height: 32),
-
-                      // Tambahkan komponen NotificationSection
-                      const NotificationSection(),
-
-                      const SizedBox(height: 32),
-
-                      // Tambahkan komponen OtherSection
-                      const OtherSection(),
-
-                      const SizedBox(height: 16),
-
-                      ElevatedButton(
-                        onPressed: () {
-                          // Aksi saat tombol logout ditekan
-                          _logout(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: themeProvider.primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0,
-                            vertical: 16.0,
-                          ),
+                          ],
                         ),
-                        child: const Text(
-                          'Logout',
-                          style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                      )
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Ikon foto profil bulat
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundImage: userProfile?['image'] != null
+                                  ? NetworkImage(userProfile!['image'])
+                                  : null,
+                              child: userProfile?['image'] == null
+                                  ? const Icon(Icons.person)
+                                  : null,
+                            ),
+                            const SizedBox(
+                                width: 16), // Jarak antara ikon dan teks
+                            // Kolom untuk teks nama dan deskripsi
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start, // Teks rata kiri
+                                children: [
+                                  Text(
+                                    userProfile?['fullName'] ??
+                                        '', // Nama profil
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    userProfile?['email'] ?? '',
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 35,
+                                    vertical: 0,
+                                  ),
+                                  backgroundColor: themeProvider
+                                      .primaryColor, // Warna latar belakang
+                                  foregroundColor: Colors.white, // Warna teks
+                                ),
+                                child: SizedBox(
+                                  width: 50,
+                                  height: 40, // Atur lebar sesuai kebutuhan
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const EditProfilePage(), // Arahkan ke SettingsPage
+                                          ));
+                                    },
+                                    child: const Text(
+                                      'Edit',
+                                      style: TextStyle(
+                                          fontSize: 14, color: Colors.white),
+                                    ),
+                                  ),
+                                ))
+                          ],
+                        ),
+                        const SizedBox(
+                            height: 32), // Jarak antara baris pertama dan kedua
+
+                        // Baris kedua: Tiga kartu saling bersebelahan
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment
+                              .spaceEvenly, // Sebar kartu secara merata
+                          children: [
+                            Expanded(
+                              child: SizedBox(
+                                height: 70, // Atur tinggi kartu
+                                child: _buildStatCard(
+                                    '2024', 'Year joined'), // Kartu pertama
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: SizedBox(
+                                height: 70, // Atur tinggi kartu
+                                child: _buildStatCard(
+                                    '48h 27m', 'Times used'), // Kartu kedua
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: SizedBox(
+                                height: 70, // Atur tinggi kartu
+                                child: _buildStatCard(
+                                    userProfile?['birth_date'] ?? '',
+                                    'Birthday'), // Kartu ketiga
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Tambahkan komponen AccountSection
+                        const AccountSection(),
+
+                        const SizedBox(height: 32),
+
+                        // Tambahkan komponen NotificationSection
+                        const NotificationSection(),
+
+                        const SizedBox(height: 32),
+
+                        // Tambahkan komponen OtherSection
+                        const OtherSection(),
+
+                        const SizedBox(height: 16),
+
+                        ElevatedButton(
+                          onPressed: () {
+                            // Aksi saat tombol logout ditekan
+                            _logout(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: themeProvider.primaryColor,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0,
+                              vertical: 16.0,
+                            ),
+                          ),
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

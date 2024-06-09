@@ -359,7 +359,7 @@ class _GroupPageState extends State<GroupPage> {
                           ),
                         ],
                       ),
-                      bottomDetailsSheet(),
+                      bottomDetailsSheet(groupData),
                     ],
                   );
                 }
@@ -371,7 +371,7 @@ class _GroupPageState extends State<GroupPage> {
     );
   }
 
-  Widget bottomDetailsSheet() {
+  Widget bottomDetailsSheet(GroupData groupData) {
     final themeProvider = Provider.of<ThemeModel>(context);
     final isDarkMode = themeProvider.isDarkMode;
 
@@ -535,7 +535,10 @@ class _GroupPageState extends State<GroupPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              "we r goin to c the lions",
+                              groupData.lastMessage != null
+                                  ? groupData.lastMessage!['message'] ??
+                                      'we r goin to c the lions'
+                                  : 'we r goin to c the lions',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: isDarkMode ? Colors.white : Colors.black,
