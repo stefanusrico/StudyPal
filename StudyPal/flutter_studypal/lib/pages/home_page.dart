@@ -349,13 +349,6 @@ class _HomePageState extends State<HomePage> {
                                         break;
                                       case 'menu4':
                                         // Tambahkan logika menu 4
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const LeaderboardPage(), // Arahkan ke SettingsPage
-                                          ),
-                                        );
                                         break;
                                       // Add cases for more menu items as needed
                                     }
@@ -1095,7 +1088,9 @@ class _HomePageState extends State<HomePage> {
                   Column(
                     children: _latestStudyList.map((data) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0), // Adjust the vertical spacing as needed
+                        padding: const EdgeInsets.symmetric(
+                            vertical:
+                                8.0), // Adjust the vertical spacing as needed
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.85,
                           height: 75,
@@ -1129,7 +1124,8 @@ class _HomePageState extends State<HomePage> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(

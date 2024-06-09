@@ -48,18 +48,25 @@ class _InsightPageState extends State<InsightPage> {
     });
   }
 
-  Future<void> _fetchAccumulatedTime() async {
+  Future<void> _fetchAccumulatedTime({String? date}) async {
     await _getEmailandToken(); // Menunggu email dan token diambil
 
     if (email != null && mounted) {
-      // Check if the widget is mounted
       try {
+        final formattedDate =
+            date ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+        final url = Uri.parse(
+            'http://10.0.2.2:4000/users/$email/daily-accumulated-time/$formattedDate');
+
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:4000/users/$email/accumulated-time'),
+          url,
           headers: {
             'Authorization': 'Bearer $token',
           },
         );
+
+        print(response.body);
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);

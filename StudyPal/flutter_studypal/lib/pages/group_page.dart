@@ -134,7 +134,7 @@ class _GroupPageState extends State<GroupPage> {
                               text: TextSpan(
                                 children: [
                                   const TextSpan(
-                                    text: 'Studying ',
+                                    text: 'Online ',
                                     style: TextStyle(color: Colors.white),
                                   ),
                                   TextSpan(
@@ -466,25 +466,25 @@ class _GroupPageState extends State<GroupPage> {
                         Padding(
                           padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               buildCustomCard("02:10:47", "Time Total"),
-                              buildCustomCard("00:20:43", "Max Focus"),
+                              // buildCustomCard("00:20:43", "Max Focus"),
                             ],
                           ),
                         ),
                         const SizedBox(height: 2),
                         // Row kedua
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              buildCustomCard("12h 20m", "Start Time"),
-                              buildCustomCard("14h 30m", "Finish Time"),
-                            ],
-                          ),
-                        ),
+                        // Padding(
+                        //   padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        //   child: Row(
+                        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        //     children: [
+                        //       buildCustomCard("12h 20m", "Start Time"),
+                        //       buildCustomCard("14h 30m", "Finish Time"),
+                        //     ],
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

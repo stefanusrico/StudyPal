@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_studypal/pages/auth/login_page.dart';
 import 'package:flutter_studypal/pages/chat_screen.dart';
 import 'package:flutter_studypal/pages/edit_profile.dart';
+import 'package:flutter_studypal/pages/leaderboard_page.dart';
 import 'package:intl/intl.dart';
 import 'settings_page.dart';
 import 'notifications_page.dart';
@@ -550,11 +551,17 @@ class AccountSection extends StatelessWidget {
               ),
               const Divider(),
               ListTile(
-                leading: const Icon(Icons.emoji_events),
-                title: const Text('Achievement'),
+                leading: const Icon(Icons.stars),
+                title: const Text('Ranking'),
                 trailing: const Icon(Icons.arrow_forward_ios),
                 onTap: () {
-                  // Aksi saat item ditekan
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          const LeaderboardPage(), // Arahkan ke SettingsPage
+                    ),
+                  );
                 },
               ),
               const Divider(),
@@ -562,18 +569,14 @@ class AccountSection extends StatelessWidget {
                 leading: const Icon(Icons.history),
                 title: const Text('Activity History'),
                 trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  // Aksi saat item ditekan
-                },
+                onTap: () {},
               ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.school),
                 title: const Text('Study Progress'),
                 trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  // Aksi saat item ditekan
-                },
+                onTap: () {},
               ),
             ],
           ),
@@ -584,8 +587,15 @@ class AccountSection extends StatelessWidget {
 }
 
 // Komponen NotificationSection
-class NotificationSection extends StatelessWidget {
+class NotificationSection extends StatefulWidget {
   const NotificationSection({super.key});
+
+  @override
+  _NotificationSectionState createState() => _NotificationSectionState();
+}
+
+class _NotificationSectionState extends State<NotificationSection> {
+  bool _isNotificationEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -612,9 +622,11 @@ class NotificationSection extends StatelessWidget {
             title: const Text('Pop-up Notification'),
             trailing: Switch(
               activeColor: themeProvider.primaryColor,
-              value: true, // Ganti nilai sesuai kebutuhan
+              value: _isNotificationEnabled,
               onChanged: (value) {
-                // Tangani perubahan nilai switch
+                setState(() {
+                  _isNotificationEnabled = value;
+                });
               },
             ),
           ),
