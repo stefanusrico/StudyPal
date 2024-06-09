@@ -10,7 +10,14 @@ async function isEmailRegistered(email) {
   return !user.empty
 }
 
+function getWeekNumber(date) {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1)
+  const pastDaysOfYear = (date - firstDayOfYear) / 86400000
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
+}
+
 module.exports = {
   isValidEmail,
   isEmailRegistered,
+  getWeekNumber
 }

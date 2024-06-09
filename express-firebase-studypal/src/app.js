@@ -13,6 +13,7 @@ const authRoutes = require("./routes/auth_routes")
 const userRoutes = require("./routes/user_routes")
 const groupRoutes = require("./routes/group_routes")
 const messageRoutes = require("./routes/message_routes")
+const leaderboardRoutes = require("./routes/leaderboard_routes")
 const socketEvents = require("./socket/socket")
 
 const bodyParser = require("body-parser")
@@ -24,6 +25,7 @@ app.use(bodyParser.json())
 app.use(userRoutes)
 app.use(groupRoutes)
 app.use(messageRoutes)
+app.use(leaderboardRoutes)
 socketEvents(io)
 
 const PORT = process.env.PORT || 4000
