@@ -204,11 +204,11 @@ app.get("/profile/:userId", async (req, res) => {
       return res.status(404).json({ error: "User not found" })
     }
 
-    const { first_name, last_name, email, birth_date } = userData.data()
+    const { first_name, last_name, email, birth_date, image } = userData.data()
 
     const fullName = `${first_name} ${last_name}`
 
-    res.status(200).json({ fullName, email, birth_date })
+    res.status(200).json({ fullName, email, birth_date, image })
   } catch (error) {
     console.error("Error fetching user data:", error)
     res.status(500).json({ error: "Failed to fetch user data" })
