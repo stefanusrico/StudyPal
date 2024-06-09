@@ -8,6 +8,9 @@ const jwt = require("jsonwebtoken")
 const serviceAccount = require("C:\\Users\\ACER\\Desktop\\express-firebase-studypal\\firebase_credentials.json")
 const { initializeApp } = require("firebase/app")
 const cookieParser = require("cookie-parser")
+const cloudinary = require("cloudinary").v2
+const multer = require("multer")
+const bodyParser = require("body-parser")
 
 const app = express()
 app.use(express.json())
@@ -17,6 +20,17 @@ app.use(cookieParser())
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 })
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/")
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname)
+  },
+})
+
+const upload = multer({ storage: storage })
 
 const db = admin.firestore()
 const revokedTokens = new Set()
@@ -57,6 +71,8 @@ app.post("/register", async (req, res) => {
       last_name: req.body.last_name,
       gender: req.body.gender,
       birth_date: req.body.birth_date,
+      status: "offline",
+      image: "",
     }
     const usersDb = db.collection("users")
     const response = await usersDb.doc(id).set(userJson)
@@ -568,24 +584,39 @@ io.on("connection", (socket) => {
   })
 })
 
-app.put("/users/:email", async (req, res) => {
+app.put("/users/:email", upload.single("image"), async (req, res) => {
   try {
     const { email } = req.params
     const { first_name, last_name, birth_date } = req.body
+    const imageFile = req.file
+
+    const updateData = {}
+
+    if (first_name) {
+      updateData.first_name = first_name
+    }
+
+    if (last_name) {
+      updateData.last_name = last_name
+    }
+
+    if (birth_date) {
+      updateData.birth_date = birth_date
+    }
+
+    if (imageFile) {
+      const result = await cloudinary.uploader.upload(imageFile.path)
+      updateData.image = result.secure_url
+    }
 
     const userRef = db.collection("users").doc(email)
-
     const userDoc = await userRef.get()
 
     if (!userDoc.exists) {
       return res.status(404).json({ error: "User not found" })
     }
 
-    await userRef.update({
-      first_name,
-      last_name,
-      birth_date,
-    })
+    await userRef.update(updateData)
 
     res.status(200).json({ message: "Profile updated successfully" })
   } catch (error) {
@@ -605,10 +636,10 @@ app.get("/users/:email", async (req, res) => {
       return res.status(404).json({ error: "User not found" })
     }
 
-    const { first_name, last_name, birth_date } = userDoc.data()
-    const fullName = `${first_name} ${last_name}`
+    const { first_name, last_name, birth_date, image } = userDoc.data()
+    // const fullName = `${first_name} ${last_name}`
 
-    res.status(200).json({ fullName, birth_date })
+    res.status(200).json({ first_name, last_name, birth_date, image })
   } catch (error) {
     console.error("Error fetching user data:", error)
     res.status(500).json({ error: "Failed to fetch user data" })
