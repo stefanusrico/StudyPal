@@ -23,7 +23,7 @@ Sebelum memulai instalasi, pastikan Anda telah menginstal perangkat lunak beriku
 
 1. **Clone repository ini**
    ```bash
-   git clone https://github.com/username/StudyPal.git
+   git clone https://github.com/stefanusrico/StudyPal.git
    cd StudyPal
 
 2. **Instal dependencies Flutter**
