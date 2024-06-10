@@ -298,10 +298,9 @@ class _HomePageState extends State<HomePage> {
                                       },
                                       child: const Row(
                                         children: [
-                                          Icon(Icons
-                                              .logout_rounded), // Tambahkan ikon
+                                          Icon(Icons.calendar_today_rounded), // Tambahkan ikon
                                           SizedBox(width: 10),
-                                          Text('Sign Out'),
+                                          Text('Study Planner'),
                                         ],
                                       ),
                                     ),
@@ -312,7 +311,7 @@ class _HomePageState extends State<HomePage> {
                                       value: 'menu3',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.settings), // Ikon tambahan
+                                          Icon(Icons.settings_rounded), // Ikon tambahan
                                           SizedBox(width: 10),
                                           Text('Settings'),
                                         ],
@@ -322,9 +321,9 @@ class _HomePageState extends State<HomePage> {
                                       value: 'menu4',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.help), // Ikon tambahan
+                                          Icon(Icons.leaderboard_rounded), // Ikon tambahan
                                           SizedBox(width: 10),
-                                          Text('Help'),
+                                          Text('Leaderboard'),
                                         ],
                                       ),
                                     ),
@@ -337,6 +336,13 @@ class _HomePageState extends State<HomePage> {
                                         break;
                                       case 'menu2':
                                         // Tambahkan logika menu 2
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                CalendarPage(), // Arahkan ke SettingsPage
+                                          ),
+                                        );
                                         break;
                                       case 'menu3':
                                         Navigator.push(

@@ -75,6 +75,10 @@ class _GroupPageState extends State<GroupPage> {
     }
   }
 
+  String truncateWithEllipsis(int cutoff, String text) {
+    return (text.length <= cutoff) ? text : '${text.substring(0, cutoff)}...';
+  }
+
   Future<int> fetchGroupTotalTime(String groupId) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
@@ -249,14 +253,10 @@ class _GroupPageState extends State<GroupPage> {
                                                   child: FittedBox(
                                                     fit: BoxFit.scaleDown,
                                                     child: Text(
-                                                      '${user.firstName} ${user.lastName}',
+                                                      truncateWithEllipsis(10, '${user.firstName} ${user.lastName}'),
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: isOnline
-                                                            ? Colors.white
-                                                            : themeProvider
-                                                                .primaryColor,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: isOnline ? Colors.white : themeProvider.primaryColor,
                                                       ),
                                                     ),
                                                   ),
