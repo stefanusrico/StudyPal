@@ -41,11 +41,18 @@ class _GroupPageState extends State<GroupPage> {
   int pageSize = 9;
   int totalPages = 0;
 
+  int _totalAccumulatedTime = 0;
+
   @override
   void initState() {
     super.initState();
     _group = widget.group;
     _groupDataFuture = fetchGroupData(_group.id);
+    fetchGroupTotalTime(_group.id).then((totalTime) {
+      setState(() {
+        _totalAccumulatedTime = totalTime;
+      });
+    });
   }
 
   Future<GroupData> fetchGroupData(String groupId) async {
@@ -70,6 +77,25 @@ class _GroupPageState extends State<GroupPage> {
 
   String truncateWithEllipsis(int cutoff, String text) {
     return (text.length <= cutoff) ? text : '${text.substring(0, cutoff)}...';
+  }
+
+  Future<int> fetchGroupTotalTime(String groupId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:4000/group/$groupId/daily-accumulated-time'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['totalAccumulatedTime'];
+    } else {
+      throw Exception('Failed to load group total time');
+    }
   }
 
   @override
@@ -468,7 +494,9 @@ class _GroupPageState extends State<GroupPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              buildCustomCard("02:10:47", "Time Total"),
+                              buildCustomCard(
+                                  formatDuration(_totalAccumulatedTime),
+                                  "Time Total"),
                               // buildCustomCard("00:20:43", "Max Focus"),
                             ],
                           ),
@@ -622,4 +650,12 @@ class _GroupPageState extends State<GroupPage> {
       ),
     );
   }
+}
+
+String formatDuration(int seconds) {
+  final duration = Duration(seconds: seconds);
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60);
+  final secs = duration.inSeconds.remainder(60);
+  return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
 }

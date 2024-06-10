@@ -194,10 +194,57 @@ const joinGroup = async (req, res) => {
   }
 }
 
+const groupTotalTime = async (req, res) => {
+  try {
+    const groupId = req.params.groupId
+
+    const groupDoc = await db
+      .collection("group-conversations")
+      .doc(groupId)
+      .get()
+    if (!groupDoc.exists) {
+      return res.status(404).json({ error: "Group not found" })
+    }
+    const participantIds = groupDoc.data().participantIds
+
+    let totalAccumulatedTime = 0
+
+    for (const participantId of participantIds) {
+      const userRef = db.collection("users").doc(participantId)
+      const dailyTimesCollection = userRef
+        .collection("timer")
+        .doc("time")
+        .collection("daily")
+
+      console.log("Daily times collection path:", dailyTimesCollection.path) // Cetak path referensi dokumen
+
+      const dailyTimesSnapshot = await dailyTimesCollection.get()
+
+      let participantAccumulatedTime = 0
+      dailyTimesSnapshot.forEach((doc) => {
+        const dailyTimeData = doc.data()
+        if (dailyTimeData.accumulatedTime) {
+          participantAccumulatedTime += dailyTimeData.accumulatedTime
+        }
+      })
+
+      totalAccumulatedTime += participantAccumulatedTime
+    }
+
+    res.status(200).json({ totalAccumulatedTime })
+  } catch (error) {
+    console.error("Error getting total daily accumulated time:", error.message)
+    res
+      .status(500)
+      .json({ error: "Failed to get total daily accumulated time" })
+  }
+}
+
 module.exports = {
   getGlobalGroup,
   getGroupData,
   getJoinedGroup,
+  groupTotalTime,
   createGroup,
   joinGroup,
 }
