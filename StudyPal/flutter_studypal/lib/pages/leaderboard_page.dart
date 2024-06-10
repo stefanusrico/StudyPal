@@ -37,6 +37,7 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   String? email;
   String? token;
+  bool isLoading = true;
   DateTime _selectedDate = DateTime.now();
   String _selectedPeriod = 'Day';
   int _selectedWeek = DateTime.now().weekOfYear;
@@ -168,28 +169,22 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   void initState() {
     super.initState();
     _getEmailandToken().then((_) {
-      fetchDailyAccumulatedTimes().then((data) {
+      Future.wait([
+        fetchDailyAccumulatedTimes(),
+        fetchWeeklyAccumulatedTimes(),
+        fetchMonthlyAccumulatedTimes(),
+      ]).then((results) {
         setState(() {
-          dailyAccumulatedTimes = data;
+          dailyAccumulatedTimes = results[0];
+          weeklyAccumulatedTimes = results[1];
+          monthlyAccumulatedTimes = results[2];
+          isLoading = false;
         });
       }).catchError((error) {
-        print('Error fetching daily accumulated times: $error');
-      });
-
-      fetchWeeklyAccumulatedTimes().then((data) {
+        print('Error fetching accumulated times: $error');
         setState(() {
-          weeklyAccumulatedTimes = data;
+          isLoading = false;
         });
-      }).catchError((error) {
-        print('Error fetching weekly accumulated times: $error');
-      });
-
-      fetchMonthlyAccumulatedTimes().then((data) {
-        setState(() {
-          monthlyAccumulatedTimes = data;
-        });
-      }).catchError((error) {
-        print('Error fetching monthly accumulated times: $error');
       });
     });
   }
@@ -219,119 +214,125 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _changePeriod('Day'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: _selectedPeriod == 'Day'
-                          ? Colors.white
-                          : Colors.black,
-                      backgroundColor: _selectedPeriod == 'Day'
-                          ? Colors.blue
-                          : Colors.grey[300],
-                    ),
-                    child: const Text('Day'),
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _changePeriod('Week'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: _selectedPeriod == 'Week'
-                          ? Colors.white
-                          : Colors.black,
-                      backgroundColor: _selectedPeriod == 'Week'
-                          ? Colors.blue
-                          : Colors.grey[300],
-                    ),
-                    child: const Text('Week'),
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _changePeriod('Month'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: _selectedPeriod == 'Month'
-                          ? Colors.white
-                          : Colors.black,
-                      backgroundColor: _selectedPeriod == 'Month'
-                          ? Colors.blue
-                          : Colors.grey[300],
-                    ),
-                    child: const Text('Month'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: () => _changeDate(-1),
-                  icon: const Icon(Icons.arrow_back_ios),
-                ),
-                Text(
-                  _selectedPeriod == 'Day'
-                      ? '${_selectedDate.day} ${_getMonthName(_selectedDate.month)}'
-                      : _selectedPeriod == 'Week'
-                          ? 'Week ${_selectedWeek.toString().padLeft(2, '0')}, $_selectedYear'
-                          : '${_getMonthName(_selectedMonth)} $_selectedYear',
-                  style: const TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _changeDate(1),
-                  icon: const Icon(Icons.arrow_forward_ios),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16.0),
-            const Text(
-              'Daily Top 3',
-              style: TextStyle(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildRankingCard(_getAccumulatedTimesList()[0], 0),
-                  const SizedBox(width: 8.0), // Jarak antara kartu ranking
-                  _buildRankingCard(_getAccumulatedTimesList()[1], 1),
-                  const SizedBox(width: 8.0),
-                  _buildRankingCard(_getAccumulatedTimesList()[2], 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _changePeriod('Day'),
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: _selectedPeriod == 'Day'
+                                ? Colors.white
+                                : Colors.black,
+                            backgroundColor: _selectedPeriod == 'Day'
+                                ? Colors.blue
+                                : Colors.grey[300],
+                          ),
+                          child: const Text('Day'),
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _changePeriod('Week'),
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: _selectedPeriod == 'Week'
+                                ? Colors.white
+                                : Colors.black,
+                            backgroundColor: _selectedPeriod == 'Week'
+                                ? Colors.blue
+                                : Colors.grey[300],
+                          ),
+                          child: const Text('Week'),
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _changePeriod('Month'),
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: _selectedPeriod == 'Month'
+                                ? Colors.white
+                                : Colors.black,
+                            backgroundColor: _selectedPeriod == 'Month'
+                                ? Colors.blue
+                                : Colors.grey[300],
+                          ),
+                          child: const Text('Month'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () => _changeDate(-1),
+                        icon: const Icon(Icons.arrow_back_ios),
+                      ),
+                      Text(
+                        _selectedPeriod == 'Day'
+                            ? '${_selectedDate.day} ${_getMonthName(_selectedDate.month)}'
+                            : _selectedPeriod == 'Week'
+                                ? 'Week ${_selectedWeek.toString().padLeft(2, '0')}, $_selectedYear'
+                                : '${_getMonthName(_selectedMonth)} $_selectedYear',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _changeDate(1),
+                        icon: const Icon(Icons.arrow_forward_ios),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  const Text(
+                    'Daily Top 3',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildRankingCard(_getAccumulatedTimesList()[0], 0),
+                        const SizedBox(
+                            width: 8.0), // Jarak antara kartu ranking
+                        _buildRankingCard(_getAccumulatedTimesList()[1], 1),
+                        const SizedBox(width: 8.0),
+                        _buildRankingCard(_getAccumulatedTimesList()[2], 2),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _getAccumulatedTimesList().length,
+                      itemBuilder: (context, index) {
+                        final accumulatedTime =
+                            _getAccumulatedTimesList()[index];
+                        return _buildRankingItem(accumulatedTime, index);
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 16.0),
-            const SizedBox(height: 16.0),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _getAccumulatedTimesList().length,
-                itemBuilder: (context, index) {
-                  final accumulatedTime = _getAccumulatedTimesList()[index];
-                  return _buildRankingItem(accumulatedTime, index);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
