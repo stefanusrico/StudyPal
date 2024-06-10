@@ -50,8 +50,3 @@ Sebelum memulai instalasi, pastikan Anda telah menginstal perangkat lunak beriku
  1. **Instal Socket.io**
     ```bash
     npm install socket.io
-
-### Bagian 4: Konfigurasi Firebase
-
- 1. **Login ke Firebase**
- 2. **Masuk ke database**
