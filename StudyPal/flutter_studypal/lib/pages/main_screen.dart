@@ -111,10 +111,10 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  Future<int> sendAccumulatedTime(
+  Future<int> sendDailyAccumulatedTime(
       int accumulatedTime, DateTime startTime, DateTime finishTime) async {
     final url =
-        Uri.parse('http://10.0.2.2:4000/users/$email/send-accumulated-time');
+        Uri.parse('http://10.0.2.2:4000/users/$email/daily-accumulated-time');
 
     try {
       final response = await http.post(
@@ -144,19 +144,92 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  Future<int> sendWeeklyAccumulatedTime(
+      int accumulatedTime, String week) async {
+    final url =
+        Uri.parse('http://10.0.2.2:4000/users/$email/weekly-accumulated-time');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          'accumulatedTime': accumulatedTime,
+          'week': week,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Weekly accumulated time sent successfully');
+        return accumulatedTime;
+      } else {
+        print(
+            'Failed to send weekly accumulated time. Status code: ${response.statusCode}');
+        return 0;
+      }
+    } catch (e) {
+      print('Error sending weekly accumulated time: $e');
+      return 0;
+    }
+  }
+
+  Future<int> sendMonthlyAccumulatedTime(
+      int accumulatedTime, String month) async {
+    final url =
+        Uri.parse('http://10.0.2.2:4000/users/$email/monthly-accumulated-time');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          'accumulatedTime': accumulatedTime,
+          'month': month,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Monthly accumulated time sent successfully');
+        return accumulatedTime;
+      } else {
+        print(
+            'Failed to send monthly accumulated time. Status code: ${response.statusCode}');
+        return 0;
+      }
+    } catch (e) {
+      print('Error sending monthly accumulated time: $e');
+      return 0;
+    }
+  }
+
+  String getWeekNumber(DateTime date) {
+    int dayOfYear = int.parse(DateFormat("D").format(date));
+    int weekOfYear = ((dayOfYear - date.weekday + 10) / 7).floor();
+    return '${date.year}-${weekOfYear.toString().padLeft(2, '0')}';
+  }
+
   Future<void> _sendAccumulatedTime(int sendDurationInSeconds) async {
     await _getEmailandToken();
-    int sentAccumulatedTime = await sendAccumulatedTime(
+    int sentAccumulatedTime = await sendDailyAccumulatedTime(
         sendDurationInSeconds, startTime ?? DateTime.now(), DateTime.now());
 
     if (sentAccumulatedTime > 0) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      String key =
-          '$email:$currentDate'; // Buat kunci unik untuk setiap user dan tanggal
-      int currentDailyAccumulatedTime = prefs.getInt(key) ?? 0;
+
+      String dailyKey = '$email:$currentDate';
+
+      int currentDailyAccumulatedTime = prefs.getInt(dailyKey) ?? 0;
+
       currentDailyAccumulatedTime += sentAccumulatedTime;
-      await prefs.setInt(key, currentDailyAccumulatedTime);
+
+      await prefs.setInt(dailyKey, currentDailyAccumulatedTime);
     }
     printDailyAccumulatedTime();
   }

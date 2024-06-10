@@ -3,6 +3,7 @@ const db = admin.firestore()
 const cloudinary = require("cloudinary").v2
 require("dotenv").config()
 const multer = require("multer")
+const { getWeekNumber } = require("../utils/utils")
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -42,10 +43,17 @@ const getProfile = async (req, res) => {
   }
 }
 
-const sendAccumulateTime = async (req, res) => {
+const sendDailyAccumulatedTime = async (req, res) => {
   try {
     const { userId } = req.params
     const { accumulatedTime, startTime, finishTime } = req.body
+
+    console.log("Received request:", {
+      userId,
+      accumulatedTime,
+      startTime,
+      finishTime,
+    })
 
     if (!userId || accumulatedTime === undefined || !finishTime) {
       return res
@@ -54,7 +62,33 @@ const sendAccumulateTime = async (req, res) => {
     }
 
     const userRef = db.collection("users").doc(userId)
-    const timeRef = userRef.collection("timer").doc("time")
+    console.log("userRef:", userRef.path)
+    const dailyTimeRef = userRef
+      .collection("timer")
+      .doc("time")
+      .collection("daily")
+      .doc(finishTime.split("T")[0])
+    console.log("dailyTimeRef:", dailyTimeRef.path)
+
+    const weekNumber = getWeekNumber(new Date(finishTime))
+    console.log(weekNumber)
+    const monthNumber = new Date(finishTime).toISOString().slice(0, 7)
+    console.log(monthNumber)
+
+    const weeklyTimeRef = userRef
+      .collection("timer")
+      .doc("time")
+      .collection("weekly")
+      .doc(weekNumber.toString())
+    console.log("weeklyTimeRef:", weeklyTimeRef.path)
+
+    const monthlyTimeRef = userRef
+      .collection("timer")
+      .doc("time")
+      .collection("monthly")
+      .doc(monthNumber)
+
+    console.log("monthlyTimeRef:", monthlyTimeRef.path)
 
     await db.runTransaction(async (transaction) => {
       const userDoc = await transaction.get(userRef)
@@ -62,14 +96,16 @@ const sendAccumulateTime = async (req, res) => {
         throw new Error("User not found")
       }
 
-      const existingTimeDoc = await transaction.get(timeRef)
+      const existingDailyTimeDoc = await transaction.get(dailyTimeRef)
+      const existingWeeklyTimeDoc = await transaction.get(weeklyTimeRef)
+      const existingMonthlyTimeDoc = await transaction.get(monthlyTimeRef)
       const timeData = {
         accumulatedTime: accumulatedTime,
         finishTime: finishTime,
       }
 
-      if (existingTimeDoc.exists) {
-        const existingData = existingTimeDoc.data()
+      if (existingDailyTimeDoc.exists) {
+        const existingData = existingDailyTimeDoc.data()
         timeData.startTime = existingData.startTime
       } else if (startTime) {
         timeData.startTime = startTime
@@ -77,39 +113,69 @@ const sendAccumulateTime = async (req, res) => {
         timeData.startTime = new Date().toISOString()
       }
 
-      transaction.set(timeRef, timeData)
+      transaction.set(dailyTimeRef, timeData)
+
+      if (existingWeeklyTimeDoc.exists) {
+        const existingWeeklyData = existingWeeklyTimeDoc.data()
+        timeData.accumulatedTime += existingWeeklyData.accumulatedTime
+      }
+
+      if (existingMonthlyTimeDoc.exists) {
+        const existingMonthlyData = existingMonthlyTimeDoc.data()
+        timeData.accumulatedTime += existingMonthlyData.accumulatedTime
+      }
+
+      transaction.set(weeklyTimeRef, {
+        accumulatedTime: timeData.accumulatedTime,
+        week: weekNumber,
+      })
+
+      transaction.set(monthlyTimeRef, {
+        accumulatedTime: timeData.accumulatedTime,
+        month: monthNumber,
+      })
     })
 
-    res.status(200).json({ message: "Accumulated time sent successfully" })
+    res
+      .status(200)
+      .json({ message: "Daily accumulated time sent successfully" })
   } catch (error) {
-    console.error("Error sending accumulated time:", error.message)
-    res.status(500).json({ error: "Failed to send accumulated time" })
+    console.error("Error sending daily accumulated time:", error.message)
+    res.status(500).json({ error: "Failed to send daily accumulated time" })
   }
 }
 
-const getAccumulatedTime = async (req, res) => {
+const getDailyAccumulatedTime = async (req, res) => {
   try {
-    const { userId } = req.params
+    const { userId, date } = req.params
 
-    const userRef = db.collection("users").doc(userId)
-    const timeRef = userRef.collection("timer").doc("time")
-
-    const timeDoc = await timeRef.get()
-
-    if (!timeDoc.exists) {
-      return res.status(404).json({ error: "Accumulated time not found" })
+    if (!userId || !date) {
+      return res.status(400).json({ error: "userId and date are required" })
     }
 
-    const timeData = timeDoc.data()
+    const userRef = db.collection("users").doc(userId)
+    const dailyTimeRef = userRef
+      .collection("timer")
+      .doc("time")
+      .collection("daily")
+      .doc(date)
+
+    const dailyTimeDoc = await dailyTimeRef.get()
+
+    if (!dailyTimeDoc.exists) {
+      return res.status(404).json({ error: "Daily accumulated time not found" })
+    }
+
+    const dailyTimeData = dailyTimeDoc.data()
 
     res.status(200).json({
-      accumulatedTime: timeData.accumulatedTime,
-      startTime: timeData.startTime,
-      finishTime: timeData.finishTime,
+      accumulatedTime: dailyTimeData.accumulatedTime,
+      startTime: dailyTimeData.startTime,
+      finishTime: dailyTimeData.finishTime,
     })
   } catch (error) {
-    console.error("Error getting accumulated time:", error.message)
-    res.status(500).json({ error: "Failed to get accumulated time" })
+    console.error("Error getting daily accumulated time:", error.message)
+    res.status(500).json({ error: "Failed to get daily accumulated time" })
   }
 }
 
@@ -180,8 +246,8 @@ const getUserProfile = async (req, res) => {
 
 module.exports = {
   getProfile,
-  sendAccumulateTime,
-  getAccumulatedTime,
+  sendDailyAccumulatedTime,
+  getDailyAccumulatedTime,
   updateProfile,
   getUserProfile,
   upload,
